@@ -7,7 +7,7 @@
   --border-color: #4a4a4a;
   --cell-size: 80px;
   --mini-size: calc(var(--cell-size) / 3.5);
-  
+
   --color-A: #ff7b7b;
   --color-B: #7bff7b;
   --color-C: #7b7bff;
@@ -28,9 +28,10 @@ body {
     "buttons hints-h"
     "hints-v hints-v";
   grid-template-columns: min-content 1fr;
-  grid-template-rows: min-content min-content 1fr;
+  grid-template-rows: min-content min-content min-content;
   gap: 30px;
-  height: 100vh;
+  height: min-content;
+  min-height: 100vh;
   box-sizing: border-box;
 }
 
@@ -41,6 +42,10 @@ body {
   padding: 10px;
   border-radius: 12px;
   box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  justify-self: start;
+  align-self: start;
+  width: fit-content;
+  height: fit-content;
 }
 
 .board-grid {
@@ -134,6 +139,11 @@ body {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
+  width: 520px;
+  padding: 10px;
+  box-sizing: border-box;
+  justify-self: start;
+  align-self: start;
 }
 
 button {
@@ -154,31 +164,38 @@ button:hover {
 /* Hints */
 #hints-v-container {
   grid-area: hints-v;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 15px;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: repeat(15, var(--cell-size));
+  gap: 4px;
+  padding: 10px;
   align-content: start;
+  box-sizing: border-box;
+  justify-self: start;
 }
 
 #hints-h-container {
   grid-area: hints-h;
   display: grid;
-  grid-template-columns: repeat(3, max-content);
-  gap: 15px;
+  grid-template-rows: repeat(8, var(--cell-size));
+  gap: 4px;
+  padding: 10px;
   align-content: start;
+  grid-auto-flow: column;
+  justify-self: start;
+  align-self: start;
 }
 
 .hint {
   display: flex;
   background: var(--card-bg);
-  padding: 6px;
   border-radius: 8px;
   border: 1px solid var(--border-color);
   cursor: pointer;
   transition: opacity 0.3s;
   align-items: center;
+  justify-content: center;
   gap: 4px;
+  box-sizing: border-box;
 }
 
 .hint.hidden {
@@ -187,10 +204,15 @@ button:hover {
 
 .vertical-hint {
   flex-direction: column;
+  width: var(--cell-size);
+  padding: 4px 0;
 }
 
 .horizontal-hint {
   flex-direction: row;
+  height: var(--cell-size);
+  width: min-content;
+  padding: 0 4px;
 }
 
 .hint-indicator {
