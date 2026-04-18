@@ -38,7 +38,7 @@ export function createHorizontalHintElement(hint: HorizontalHint): HTMLElement {
     // Add indicator between first and second card if it's a size-2 hint mapped to 3 spaces
     if (i === 0 && hint.indicator) {
       const indicatorEl = document.createElement('div');
-      indicatorEl.className = 'hint-indicator large';
+      indicatorEl.className = 'hint-indicator';
       if (hint.indicator === 'near') {
         // Double-ended arrow
         indicatorEl.innerHTML = '<svg viewBox="0 0 100 100"><path d="M 40 30 L 20 50 L 40 70 M 20 50 L 80 50 M 60 30 L 80 50 L 60 70" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>';
