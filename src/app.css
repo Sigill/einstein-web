@@ -103,13 +103,21 @@ body {
 .card.mini {
   width: var(--mini-size);
   height: var(--mini-size);
-  font-size: calc(var(--mini-size) * 0.7);
+  font-size: calc(var(--mini-size) * 0.9);
 }
 
 .card.large {
-  width: calc(var(--cell-size) * 0.8);
-  height: calc(var(--cell-size) * 0.8);
-  font-size: calc(var(--cell-size) * 0.5);
+  width: calc(var(--cell-size) * 0.9);
+  height: calc(var(--cell-size) * 0.9);
+  font-size: calc(var(--cell-size) * 0.75);
+}
+
+.card.shape-card.mini {
+  font-size: calc(var(--mini-size) * 0.7);
+}
+
+.card.shape-card.large {
+  font-size: calc(var(--cell-size) * 0.6);
 }
 
 /* Type Colors */
