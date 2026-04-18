@@ -145,6 +145,8 @@ button:hover {
   display: flex;
   flex-wrap: wrap;
   gap: 15px;
+  align-items: flex-start;
+  align-content: start;
 }
 
 #hints-h-container {
