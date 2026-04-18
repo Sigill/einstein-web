@@ -19,8 +19,9 @@ document.addEventListener('DOMContentLoaded', () => {
     return ALL_VALUES[Math.floor(Math.random() * ALL_VALUES.length)];
   }
 
-  // 15 Vertical hints
-  for (let i = 0; i < 15; i++) {
+  // 5 to 15 Vertical hints
+  const numVHints = Math.floor(Math.random() * 11) + 5;
+  for (let i = 0; i < numVHints; i++) {
     const topCard = { type: ALL_TYPES[Math.floor(Math.random() * 5)], value: randomValue() };
     const bottomCard = { type: ALL_TYPES[Math.floor(Math.random() * 5) + 1], value: randomValue() };
     const hint = new VerticalHint(topCard, bottomCard);
@@ -28,8 +29,9 @@ document.addEventListener('DOMContentLoaded', () => {
     hintsVContainer.appendChild(createVerticalHintElement(hint));
   }
 
-  // 3x8 = 24 Horizontal hints
-  for (let i = 0; i < 24; i++) {
+  // 10 to 24 Horizontal hints
+  const numHHints = Math.floor(Math.random() * 15) + 10;
+  for (let i = 0; i < numHHints; i++) {
     const isThree = Math.random() > 0.5;
     const isNear = Math.random() > 0.5;
 
