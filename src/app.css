@@ -84,6 +84,10 @@ body {
   border-radius: 2px;
 }
 
+.mini-card-container:not(:has(.card)) {
+  cursor: default;
+}
+
 .mini-card-container:has(.card):hover {
   background-color: rgba(255, 255, 255, 0.1);
 }
