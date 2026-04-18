@@ -15,6 +15,7 @@
   "devDependencies": {
     "@eslint/css": "^1.1.0",
     "@eslint/js": "^10.0.1",
+    "@fontsource/open-sans": "^5.2.7",
     "@stylistic/eslint-plugin": "^5.4.0",
     "@types/app-root-dir": "^0.1.4",
     "@types/eslint__js": "^8.42.3",
@@ -22,6 +23,7 @@
     "app-root-dir": "^1.0.2",
     "commander": "^14.0.0",
     "esbuild": "^0.28.0",
+    "esbuild-plugin-copy": "^2.1.1",
     "eslint": "^10.2.1",
     "typescript-eslint": "^8.35.0"
   }

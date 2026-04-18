@@ -21,7 +21,6 @@ body {
   padding: 20px;
   background-color: var(--bg-color);
   color: var(--text-color);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   display: grid;
   grid-template-areas:
     "board hints-h"
@@ -33,6 +32,18 @@ body {
   height: min-content;
   min-height: 100vh;
   box-sizing: border-box;
+
+  /*
+   * Use the Open Sans font.
+   * Browsers/platforms use different default fonts, with different font metrics.
+   * Using one specific font allows to correctly tune the font metric and ensure
+   * that characters are perfectly located where we want them to be.
+   */
+  font-family: "Open Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  font-variation-settings: "wdth" 100;
 }
 
 /* Board */
@@ -103,6 +114,12 @@ body {
   align-items: center;
   justify-content: center;
   user-select: none;
+  line-height: 1;
+}
+
+.card:not(.shape-card) {
+  /* Text-based cards often sit slightly low due to font metrics */
+  padding-bottom: 0.07em;
 }
 
 .card.mini {

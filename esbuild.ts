@@ -2,6 +2,7 @@ import { Command } from 'commander';
 import * as esbuild from 'esbuild';
 import * as path from 'path';
 import appRootDir from 'app-root-dir';
+import { copy } from 'esbuild-plugin-copy';
 
 // Otherwise the serve port from the previous build might not be fully released.
 await new Promise(resolve => setTimeout(resolve, 500));
@@ -41,7 +42,15 @@ program.action(async ({ watch, serve, liveReload }: { watch: boolean; serve: boo
       { in: 'src/app.css', out: 'www/app' },
     ],
     plugins: [
-      logRebuildPlugin
+      logRebuildPlugin,
+      copy({
+        assets: [
+          {
+            from: [path.join(root, 'node_modules', '@fontsource', 'open-sans', '**', '*400*')],
+            to: path.join(distDir, 'www', 'assets', 'fonts', 'open-sans'),
+          },
+        ],
+      }),
     ],
     jsxFactory: 'h',
     jsxFragment: 'Fragment',
