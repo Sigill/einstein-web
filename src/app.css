@@ -117,7 +117,12 @@ body {
   line-height: 1;
 }
 
-.card:not(.shape-card) {
+.card svg {
+  width: 1em;
+  height: 1em;
+}
+
+.card:not(.shape-card):not(.dice-card) {
   /* Text-based cards often sit slightly low due to font metrics */
   padding-bottom: 0.07em;
 }
@@ -134,11 +139,13 @@ body {
   font-size: calc(var(--cell-size) * 0.75);
 }
 
-.card.shape-card.mini {
+.card.shape-card.mini,
+.card.dice-card.mini {
   font-size: calc(var(--mini-size) * 0.7);
 }
 
-.card.shape-card.large {
+.card.shape-card.large,
+.card.dice-card.large {
   font-size: calc(var(--cell-size) * 0.6);
 }
 
