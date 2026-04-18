@@ -41,7 +41,7 @@ export function createHorizontalHintElement(hint: HorizontalHint): HTMLElement {
       indicatorEl.className = 'hint-indicator large';
       if (hint.indicator === 'near') {
         // Double-ended arrow
-        indicatorEl.innerHTML = '<svg viewBox="0 0 100 100"><path d="M 20 50 L 40 30 M 20 50 L 40 70 M 20 50 L 80 50 M 80 50 L 60 30 M 80 50 L 60 70" stroke="currentColor" stroke-width="8" fill="none"/></svg>';
+        indicatorEl.innerHTML = '<svg viewBox="0 0 100 100"><path d="M 40 30 L 20 50 L 40 70 M 20 50 L 80 50 M 60 30 L 80 50 L 60 70" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>';
       } else if (hint.indicator === 'aside') {
         // Three dots
         indicatorEl.innerHTML = '<svg viewBox="0 0 100 100"><circle cx="20" cy="50" r="8" fill="currentColor"/><circle cx="50" cy="50" r="8" fill="currentColor"/><circle cx="80" cy="50" r="8" fill="currentColor"/></svg>';
