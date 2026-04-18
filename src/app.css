@@ -190,3 +190,8 @@ button:hover {
   width: var(--mini-size);
   height: var(--mini-size);
 }
+
+.hint-indicator.large {
+  width: calc(var(--cell-size) * 0.9);
+  height: calc(var(--cell-size) * 0.9);
+}
