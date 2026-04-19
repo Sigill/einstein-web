@@ -141,7 +141,7 @@ body {
 
 .card.shape-card.mini,
 .card.dice-card.mini {
-  font-size: calc(var(--mini-size) * 0.95);
+  font-size: calc(var(--mini-size) * 1.1);
 }
 
 .card.shape-card.large,
