@@ -1,4 +1,5 @@
 import { Card, CardType, CardValue } from '../engine/types.js';
+import { SYMBOL_MAP } from '../misc/symbols.js';
 
 const SHAPE_SVGS: Record<CardValue, string> = {
   // Triangle Up
@@ -24,19 +25,10 @@ const DICE_SVGS: Record<CardValue, string> = {
   6: '<svg viewBox="0 0 100 100"><rect x="10" y="10" width="80" height="80" rx="12" fill="none" stroke="currentColor" stroke-width="8"/><circle cx="30" cy="30" r="10" fill="currentColor"/><circle cx="30" cy="50" r="10" fill="currentColor"/><circle cx="30" cy="70" r="10" fill="currentColor"/><circle cx="70" cy="30" r="10" fill="currentColor"/><circle cx="70" cy="50" r="10" fill="currentColor"/><circle cx="70" cy="70" r="10" fill="currentColor"/></svg>'
 };
 
-const TEXT_MAP: Record<CardType, Record<CardValue, string>> = {
-  A: { 1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6' },
-  B: { 1: 'A', 2: 'B', 3: 'C', 4: 'D', 5: 'E', 6: 'F' },
-  C: { 1: 'I', 2: 'II', 3: 'III', 4: 'IV', 5: 'V', 6: 'VI' },
-  D: { 1: '', 2: '', 3: '', 4: '', 5: '', 6: '' }, // Handled by SVGs
-  E: { 1: '', 2: '', 3: '', 4: '', 5: '', 6: '' }, // Handled by SVGs
-  F: { 1: '+', 2: '-', 3: '÷', 4: '×', 5: '=', 6: '√' }
-};
-
 export function createCardElement(cardInfo: Card | { type: CardType, value: CardValue }): HTMLElement {
   const el = document.createElement('div');
   el.className = `card type-${cardInfo.type} val-${cardInfo.value}`;
-  
+
   if (cardInfo.type === 'E') {
     el.innerHTML = SHAPE_SVGS[cardInfo.value];
     el.classList.add('shape-card');
@@ -44,7 +36,7 @@ export function createCardElement(cardInfo: Card | { type: CardType, value: Card
     el.innerHTML = DICE_SVGS[cardInfo.value];
     el.classList.add('dice-card');
   } else {
-    el.textContent = TEXT_MAP[cardInfo.type][cardInfo.value];
+    el.textContent = SYMBOL_MAP[cardInfo.type][cardInfo.value];
   }
 
   return el;

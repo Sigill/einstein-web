@@ -2,10 +2,17 @@ import { Board } from './Board.js';
 import { SolvedPuzzle, ALL_TYPES, ALL_VALUES } from './types.js';
 import { Rule, NearRule, OpenRule, UnderRule, DirectionRule, BetweenRule } from './Rules.js';
 import { shuffleArray } from '../misc/utils.js';
+import { SYMBOL_MAP } from '../misc/symbols.js';
 
 export function printPuzzle(puzzle: SolvedPuzzle) {
   for (const type of ALL_TYPES) {
     console.log(`${type}: ${puzzle[type].join(', ')}`);
+  }
+}
+
+export function printPuzzleWithSymbols(puzzle: SolvedPuzzle) {
+  for (const type of ALL_TYPES) {
+    console.log(`${type}: ${puzzle[type].map(v => SYMBOL_MAP[type][v]).join(', ')}`);
   }
 }
 
