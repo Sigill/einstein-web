@@ -56,13 +56,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const hintsVContainer = document.getElementById('hints-v-container')!;
   const hintsHContainer = document.getElementById('hints-h-container')!;
 
+  const hintToElement = new Map<Hint, HTMLElement>();
   for (const hint of allHints) {
     if (hint.rule instanceof OpenRule) continue;
 
     if (hint.rule instanceof UnderRule) {
-      hintsVContainer.appendChild(createVerticalHintElement(hint));
+      const el = createVerticalHintElement(hint);
+      hintsVContainer.appendChild(el);
+      hintToElement.set(hint, el);
     } else if (hint.rule instanceof NearRule || hint.rule instanceof DirectionRule || hint.rule instanceof BetweenRule) {
-      hintsHContainer.appendChild(createHorizontalHintElement(hint));
+      const el = createHorizontalHintElement(hint);
+      hintsHContainer.appendChild(el);
+      hintToElement.set(hint, el);
     }
   }
 
@@ -72,6 +77,42 @@ document.addEventListener('DOMContentLoaded', () => {
     for (const hint of allHints) {
       hint.visibility.toggle();
     }
+  });
+
+  const btnHint = document.getElementById('btn-hint')!;
+  btnHint.addEventListener('click', () => {
+    // Identify the first hint that applies to the board
+    // We prioritize visible hints first for better UX
+    const candidates = [
+      ...allHints.filter(h => h.visibility.isVisible),
+      ...allHints.filter(h => !h.visibility.isVisible)
+    ];
+
+    for (const hint of candidates) {
+      if (hint.rule instanceof OpenRule) continue;
+
+      // We clone the board to test if the rule can make any deductions
+      const tempBoard = Board.fromJSON(board.toJSON());
+      if (hint.rule.apply(tempBoard)) {
+        const el = hintToElement.get(hint);
+        if (el) {
+          // Found it! Make it blink.
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.classList.remove('blink');
+          // Trigger reflow to restart animation if it was already blinking
+          // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+          el.offsetWidth;
+          el.classList.add('blink');
+
+          // Remove the class after the animation finishes (3 iterations * 0.6s = 1.8s)
+          setTimeout(() => el.classList.remove('blink'), 2000);
+          return;
+        }
+      }
+    }
+
+    // fallback
+    alert('No direct deductions found from any hint. You might need to combine information or you have made a mistake.');
   });
 
   let finished = false;

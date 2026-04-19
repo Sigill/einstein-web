@@ -247,3 +247,15 @@ button:hover {
   width: calc(var(--cell-size) * 0.9);
   height: calc(var(--cell-size) * 0.9);
 }
+
+@keyframes blink-animation {
+  0% { background-color: var(--card-bg); }
+  50% { background-color: #666; border-color: #fff; transform: scale(1.05); }
+  100% { background-color: var(--card-bg); }
+}
+
+.hint.blink {
+  animation: blink-animation 0.6s ease-in-out 3;
+  z-index: 10;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+}
