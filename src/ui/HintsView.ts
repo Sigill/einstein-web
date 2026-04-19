@@ -19,15 +19,15 @@ export function createVerticalHintElement(hint: Hint): HTMLElement {
   el.appendChild(topCard);
   el.appendChild(bottomCard);
 
-  hint.addEventListener('visibilityChanged', (hidden: boolean) => {
-    el.classList.toggle('hidden', hidden);
+  hint.visibility.addEventListener('visibilityChanged', (visible: boolean) => {
+    el.classList.toggle('hidden', !visible);
   });
 
   el.addEventListener('click', () => {
-    hint.toggle();
+    hint.visibility.toggle();
   });
 
-  if (hint.isHidden) el.classList.add('hidden');
+  if (!hint.visibility.isVisible) el.classList.add('hidden');
 
   return el;
 }
@@ -58,15 +58,15 @@ export function createHorizontalHintElement(hint: Hint): HTMLElement {
     throw new Error('createHorizontalHintElement expected NearRule, DirectionRule or BetweenRule');
   }
 
-  hint.addEventListener('visibilityChanged', (hidden: boolean) => {
-    el.classList.toggle('hidden', hidden);
+  hint.visibility.addEventListener('visibilityChanged', (visible: boolean) => {
+    el.classList.toggle('hidden', !visible);
   });
 
   el.addEventListener('click', () => {
-    hint.toggle();
+    hint.visibility.toggle();
   });
 
-  if (hint.isHidden) el.classList.add('hidden');
+  if (!hint.visibility.isVisible) el.classList.add('hidden');
 
   return el;
 }

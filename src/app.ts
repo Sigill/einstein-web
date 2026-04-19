@@ -4,6 +4,7 @@ import { BoardView } from './ui/BoardView.js';
 import { createVerticalHintElement, createHorizontalHintElement } from './ui/HintsView.js';
 import { generatePuzzleWithAcceptableAmountOfHints } from './engine/PuzzleGenerator.js';
 import { OpenRule, NearRule, DirectionRule, UnderRule, BetweenRule } from './engine/Rules.js';
+import { VisibilityObservable } from './ui/VisibilityObservable.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const board = new Board();
@@ -19,11 +20,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const { puzzle, rules } = generatePuzzleWithAcceptableAmountOfHints();
 
   for (const rule of rules) {
+    const hint: Hint = {
+      visibility: new VisibilityObservable(),
+      rule,
+    };
+    allHints.push(hint);
+
     if (rule instanceof OpenRule) {
       board.setAt(rule.col, rule.card);
     } else {
-      const hint = new Hint(rule);
-      allHints.push(hint);
       if (rule instanceof UnderRule) {
         hintsVContainer.appendChild(createVerticalHintElement(hint));
       } else if (rule instanceof NearRule || rule instanceof DirectionRule || rule instanceof BetweenRule) {
@@ -36,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnSwitch = document.getElementById('btn-switch')!;
   btnSwitch.addEventListener('click', () => {
     for (const hint of allHints) {
-      hint.setHidden(!hint.isHidden);
+      hint.visibility.toggle();
     }
   });
 
