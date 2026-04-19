@@ -11,7 +11,7 @@ It uses an Observable pattern to react to game state changes, ensuring real-time
   - **Right-click** blacklists the candidate, removing it from the candidate list.
 - **Hints**:
   - **Vertical hints**: Displayed in a row below the main grid. Consists of two vertically stacked cards.
-  - **Horizontal hints**: Displayed in columns on the top-right. Features a near indicator (↔) or an aside indicator (…) to guide spatial relations.
+  - **Horizontal hints**: Displayed in columns on the top-right. Features a near indicator (↔) or an direction indicator (…) to guide spatial relations.
   - Hints can be visually toggled (greyed out or restored) by clicking on them.
 - **Control Panel**: Contains action buttons like Pause, Switch (inverts hint visibility), Exit, Save, Options, and Help.
 
@@ -24,6 +24,16 @@ The game implements an automatic constraint propagation system (a "cascade") to 
   - **Square-level**: If a square has only one candidate remaining, it is automatically validated with that value.
   - **Row-level**: If a specific card value remains a candidate in only one square across the entire row, that square is automatically validated with that value.
 - **Queue System**: To handle the resulting chain reactions, the `Board` uses a FIFO (First-In-First-Out) queue. This ensures that all indirect deductions are processed sequentially and the game state remains consistent before UI updates are triggered.
+
+## Puzzle Generation & Rule Logic
+
+The game uses a constraint-based puzzle generation process to provide randomized puzzles every time. This logic resides under `src/engine/PuzzleGenerator.ts` and `src/engine/Rules.ts`:
+
+- **Puzzle Definition**: A `SolvedPuzzle` object represents the completed 6x6 board configuration. The generator starts by completely shuffling columns for each card type to yield a random solvable distribution.
+- **Rule Constraints**: `Rule` subclasses (such as `UnderRule`, `NearRule`, `DirectionRule`, `BetweenRule`, and `OpenRule`) test the internal logic `Board`, attempting to exclude incorrect candidates (`blacklistAt`) or forcibly lock down correct ones (`validateAt`).
+- **Generation Loop**: The generator tests rules continuously. It collects random rules and checks `canSolve()` using a hidden board simulating deductions step-by-step. It continues finding rules until `canSolve()` confirms that the current rule-set leads strictly to the `SolvedPuzzle` configuration without error.
+- **Rule Pruning**: The generator runs a `removeRules` pass afterwards to strip off overly redundant rules without making the puzzle unsolvable, resulting in a minimally restrictive hint set.
+- **Win / Loss Validation**: The actual game engine validates user-submitted states using `Board.isValid(SolvedPuzzle)`. The application subscribes to the board's changes and will dispatch a win/loss alert if a user resolves the full constraints, or mistakenly blacklists/validates an incompatible move preventing full resolution.
 
 ## Code Documentation Principles
 

@@ -1,8 +1,9 @@
 import { Board } from './engine/Board.js';
-import { CardValue, ALL_TYPES, ALL_VALUES } from './engine/types.js';
 import { VerticalHint, HorizontalHint } from './engine/Hint.js';
 import { BoardView } from './ui/BoardView.js';
 import { createVerticalHintElement, createHorizontalHintElement } from './ui/HintsView.js';
+import { generatePuzzleWithAcceptableAmountOfHints } from './engine/PuzzleGenerator.js';
+import { OpenRule, NearRule, DirectionRule, UnderRule, BetweenRule } from './engine/Rules.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const board = new Board();
@@ -15,42 +16,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const allHints: (VerticalHint | HorizontalHint)[] = [];
 
-  function randomValue(): CardValue {
-    return ALL_VALUES[Math.floor(Math.random() * ALL_VALUES.length)];
-  }
+  const { puzzle, rules } = generatePuzzleWithAcceptableAmountOfHints();
 
-  // 5 to 15 Vertical hints
-  const numVHints = Math.floor(Math.random() * 11) + 5;
-  for (let i = 0; i < numVHints; i++) {
-    const topCard = { type: ALL_TYPES[Math.floor(Math.random() * 5)], value: randomValue() };
-    const bottomCard = { type: ALL_TYPES[Math.floor(Math.random() * 5) + 1], value: randomValue() };
-    const hint = new VerticalHint(topCard, bottomCard);
-    allHints.push(hint);
-    hintsVContainer.appendChild(createVerticalHintElement(hint));
-  }
-
-  // 10 to 24 Horizontal hints
-  const numHHints = Math.floor(Math.random() * 15) + 10;
-  for (let i = 0; i < numHHints; i++) {
-    const isThree = Math.random() > 0.5;
-    const isNear = Math.random() > 0.5;
-
-    if (isThree) {
-      const hint = new HorizontalHint([
-        { type: ALL_TYPES[Math.floor(Math.random() * 6)], value: randomValue() },
-        { type: ALL_TYPES[Math.floor(Math.random() * 6)], value: randomValue() },
-        { type: ALL_TYPES[Math.floor(Math.random() * 6)], value: randomValue() }
-      ]);
+  for (const rule of rules) {
+    if (rule instanceof OpenRule) {
+      board.validateAt(rule.col, rule.row, rule.thing);
+    } else if (rule instanceof UnderRule) {
+      const hint = new VerticalHint({ type: rule.row1, value: rule.thing1 }, { type: rule.row2, value: rule.thing2 });
+      allHints.push(hint);
+      hintsVContainer.appendChild(createVerticalHintElement(hint));
+    } else if (rule instanceof NearRule) {
+      const hint = new HorizontalHint([{ type: rule.type1, value: rule.val1 }, { type: rule.type2, value: rule.val2 }], 'near');
       allHints.push(hint);
       hintsHContainer.appendChild(createHorizontalHintElement(hint));
-    } else {
-      const hint = new HorizontalHint(
-        [
-          { type: ALL_TYPES[Math.floor(Math.random() * 6)], value: randomValue() },
-          { type: ALL_TYPES[Math.floor(Math.random() * 6)], value: randomValue() }
-        ],
-        isNear ? 'near' : 'aside'
-      );
+    } else if (rule instanceof DirectionRule) {
+      const hint = new HorizontalHint([{ type: rule.row1, value: rule.thing1 }, { type: rule.row2, value: rule.thing2 }], 'direction');
+      allHints.push(hint);
+      hintsHContainer.appendChild(createHorizontalHintElement(hint));
+    } else if (rule instanceof BetweenRule) {
+      const hint = new HorizontalHint([{ type: rule.row1, value: rule.thing1 }, { type: rule.centerRow, value: rule.centerThing }, { type: rule.row2, value: rule.thing2 }]);
       allHints.push(hint);
       hintsHContainer.appendChild(createHorizontalHintElement(hint));
     }
@@ -61,6 +45,19 @@ document.addEventListener('DOMContentLoaded', () => {
   btnSwitch.addEventListener('click', () => {
     for (const hint of allHints) {
       hint.setHidden(!hint.isHidden);
+    }
+  });
+
+  let finished = false;
+  board.addEventListener('change', () => {
+    if (finished) return;
+
+    if (!board.isValid(puzzle)) {
+      finished = true;
+      setTimeout(() => alert('You Lose!'), 50);
+    } else if (board.isSolved()) {
+      finished = true;
+      setTimeout(() => alert('You Win!'), 50);
     }
   });
 });

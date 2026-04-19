@@ -30,7 +30,7 @@ export class VerticalHint extends Hint {
   }
 }
 
-export type HorizontalIndicator = 'near' | 'aside';
+export type HorizontalIndicator = 'near' | 'direction';
 
 export class HorizontalHint extends Hint {
   constructor(

@@ -1,5 +1,5 @@
 import { Observable } from '../misc/observable.js';
-import { CardType, CardValue, ALL_TYPES } from './types.js';
+import { CardType, CardValue, ALL_TYPES, SolvedPuzzle } from './types.js';
 import { Square } from './Square.js';
 
 export type BoardEvents = {
@@ -40,9 +40,49 @@ export class Board extends Observable<BoardEvents> {
     this.processQueue();
   }
 
+  public validateAt(col: number, type: CardType, value: CardValue) {
+    this.validate(this.squares[type][col], value);
+  }
+
   public blacklist(square: Square, value: CardValue) {
     this.queue.push({ type: 'blacklist', square, value });
     this.processQueue();
+  }
+
+  public blacklistAt(col: number, type: CardType, value: CardValue) {
+    this.blacklist(this.squares[type][col], value);
+  }
+
+  public isPossible(col: number, type: CardType, value: CardValue): boolean {
+    return this.squares[type][col].candidates.has(value);
+  }
+
+  public isDefined(col: number, type: CardType): boolean {
+    return this.squares[type][col].isResolved();
+  }
+
+  public getDefined(col: number, type: CardType): CardValue | null {
+    return this.squares[type][col].value;
+  }
+
+  public isSolved(): boolean {
+    for (const type of ALL_TYPES) {
+      for (const square of this.squares[type]) {
+        if (!square.isResolved()) return false;
+      }
+    }
+    return true;
+  }
+
+  public isValid(puzzle: SolvedPuzzle): boolean {
+    for (const type of ALL_TYPES) {
+      for (let col = 0; col < 6; col++) {
+        if (!this.squares[type][col].candidates.has(puzzle[type][col])) {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
   /**
