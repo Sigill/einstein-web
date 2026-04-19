@@ -52,7 +52,7 @@ body {
   background: #1e1e1e;
   padding: 10px;
   border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
   justify-self: start;
   align-self: start;
   width: fit-content;
@@ -150,12 +150,29 @@ body {
 }
 
 /* Type Colors */
-.type-A { color: var(--color-A); }
-.type-B { color: var(--color-B); }
-.type-C { color: var(--color-C); }
-.type-D { color: var(--color-D); }
-.type-E { color: var(--color-E); }
-.type-F { color: var(--color-F); }
+.type-A {
+  color: var(--color-A);
+}
+
+.type-B {
+  color: var(--color-B);
+}
+
+.type-C {
+  color: var(--color-C);
+}
+
+.type-D {
+  color: var(--color-D);
+}
+
+.type-E {
+  color: var(--color-E);
+}
+
+.type-F {
+  color: var(--color-F);
+}
 
 /* Buttons */
 #buttons-container {
@@ -249,13 +266,21 @@ button:hover {
 }
 
 @keyframes blink-animation {
-  0% { background-color: var(--card-bg); }
-  50% { background-color: #666; border-color: #fff; transform: scale(1.05); }
-  100% { background-color: var(--card-bg); }
+  0% {
+    background-color: var(--card-bg);
+  }
+
+  50% {
+    background-color: #666;
+    border-color: #fff;
+    transform: scale(1.05);
+  }
+
+  100% {
+    background-color: var(--card-bg);
+  }
 }
 
-.hint.blink {
+.blink {
   animation: blink-animation 0.6s ease-in-out 3;
-  z-index: 10;
-  box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
 }

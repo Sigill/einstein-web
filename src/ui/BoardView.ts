@@ -1,5 +1,5 @@
 import { Board } from '../engine/Board.js';
-import { ALL_TYPES } from '../engine/types.js';
+import { ALL_TYPES, CardType } from '../engine/types.js';
 import { SquareView } from './SquareView.js';
 
 export class BoardView {
@@ -18,5 +18,11 @@ export class BoardView {
         this.element.appendChild(squareView.element);
       }
     }
+  }
+
+  public getSquareView(type: CardType, col: number): SquareView | null {
+    const typeIndex = ALL_TYPES.indexOf(type);
+    if (typeIndex === -1) return null;
+    return this.squares[typeIndex * 6 + col] || null;
   }
 }

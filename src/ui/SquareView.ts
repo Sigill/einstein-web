@@ -7,6 +7,7 @@ export class SquareView {
   public element: HTMLElement;
   private candidatesContainer: HTMLElement;
   private resolvedContainer: HTMLElement;
+  private miniCardElements: HTMLElement[] = [];
 
   constructor(
     private square: Square,
@@ -29,8 +30,9 @@ export class SquareView {
 
     this.square.addEventListener('change', () => this.render());
   }
-
   private render() {
+    this.miniCardElements = [];
+
     if (this.square.isResolved()) {
       this.candidatesContainer.style.display = 'none';
       this.resolvedContainer.style.display = 'flex';
@@ -51,6 +53,7 @@ export class SquareView {
       for (const val of ALL_VALUES) {
         const miniCardContainer = document.createElement('div');
         miniCardContainer.className = 'mini-card-container';
+        this.miniCardElements[val - 1] = miniCardContainer;
 
         if (this.square.candidates.has(val)) {
           const cardEl = createCardElement({ type: this.square.type, value: val });
@@ -73,5 +76,12 @@ export class SquareView {
         this.candidatesContainer.appendChild(miniCardContainer);
       }
     }
+  }
+
+  public getCandidateElement(val: number): HTMLElement | null {
+    if (this.square.isResolved()) {
+      return this.resolvedContainer.querySelector('.card') as HTMLElement;
+    }
+    return this.miniCardElements[val - 1] || null;
   }
 }
