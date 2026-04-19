@@ -1,6 +1,7 @@
 import { randomInt } from '../misc/utils.js';
 import { Board } from './Board.js';
-import { CardType, CardValue, SolvedPuzzle, ALL_TYPES } from './types.js';
+import { CardType, ALL_TYPES, Card } from './types.js';
+import { SolvedPuzzle } from './SolvedPuzzle.js';
 
 function randomType(): CardType {
   return ALL_TYPES[randomInt(6)];
@@ -9,21 +10,33 @@ function randomType(): CardType {
 export abstract class Rule {
   abstract apply(board: Board): boolean;
   abstract getAsText(): string;
+
+  abstract toJSON(): NearRuleData | DirectionRuleData | OpenRuleData | UnderRuleData | BetweenRuleData;
+}
+
+export interface NearRuleData {
+  type: 'near';
+  card1: Card;
+  card2: Card;
 }
 
 /**
  * Rule: two cards are located at neighboring columns.
  */
 export class NearRule extends Rule {
-  card1: Card;
-  card2: Card;
+  readonly card1: Card;
+  readonly card2: Card;
 
-  constructor(puzzle: SolvedPuzzle) {
+  constructor(card1: Card, card2: Card) {
     super();
+    this.card1 = card1;
+    this.card2 = card2;
+  }
+
+  static FromSolvedPuzzle(puzzle: SolvedPuzzle): NearRule {
     const col1 = randomInt(6);
     const type1 = randomType();
     const val1 = puzzle[type1][col1];
-    this.card1 = { type: type1, value: val1 };
 
     let col2: number;
     if (col1 === 0) col2 = 1;
@@ -32,7 +45,8 @@ export class NearRule extends Rule {
 
     const type2 = randomType();
     const val2 = puzzle[type2][col2];
-    this.card2 = { type: type2, value: val2 };
+
+    return new NearRule({ type: type1, value: val1 }, { type: type2, value: val2 });
   }
 
   private applyToCol(board: Board, col: number, nearCard: Card, thisCard: Card): boolean {
@@ -61,25 +75,43 @@ export class NearRule extends Rule {
   getAsText(): string {
     return `${this.card1.type}${this.card1.value} is near to ${this.card2.type}${this.card2.value}`;
   }
+
+  toJSON(): NearRuleData {
+    return {
+      type: 'near' as const,
+      card1: this.card1,
+      card2: this.card2,
+    };
+  }
+}
+
+export interface DirectionRuleData {
+  type: 'direction';
+  card1: Card;
+  card2: Card;
 }
 
 /**
  * Rule: one card is located to the left of another card.
  */
 export class DirectionRule extends Rule {
-  card1: Card;
-  card2: Card;
+  readonly card1: Card;
+  readonly card2: Card;
 
-  constructor(puzzle: SolvedPuzzle) {
+  constructor(card1: Card, card2: Card) {
     super();
+    this.card1 = card1;
+    this.card2 = card2;
+  }
+
+  static FromSolvedPuzzle(puzzle: SolvedPuzzle): DirectionRule {
     const row1 = randomType();
     const row2 = randomType();
     const col1 = randomInt(5);
     const col2 = randomInt(5 - col1) + col1 + 1;
     const val1 = puzzle[row1][col1];
     const val2 = puzzle[row2][col2];
-    this.card1 = { type: row1, value: val1 };
-    this.card2 = { type: row2, value: val2 };
+    return new DirectionRule({ type: row1, value: val1 }, { type: row2, value: val2 });
   }
 
   apply(board: Board): boolean {
@@ -113,21 +145,44 @@ export class DirectionRule extends Rule {
   getAsText() {
     return `${this.card1.type}${this.card1.value} is from the left of ${this.card2.type}${this.card2.value}`;
   }
+
+  toJSON(): DirectionRuleData {
+    return {
+      type: 'direction',
+      card1: this.card1,
+      card2: this.card2,
+    };
+  }
+
+  static fromJSON(json: Omit<DirectionRuleData, 'type'>): DirectionRule {
+    return new DirectionRule(json.card1, json.card2);
+  }
+}
+
+export interface OpenRuleData {
+  type: 'open';
+  card: Card;
+  col: number;
 }
 
 /**
  * Rule: one card is located at a specific column.
  */
 export class OpenRule extends Rule {
-  card: Card;
-  col: number;
+  readonly card: Card;
+  readonly col: number;
 
-  constructor(puzzle: SolvedPuzzle) {
+  constructor(card: Card, col: number) {
     super();
-    this.col = randomInt(6);
+    this.card = card;
+    this.col = col;
+  }
+
+  static FromSolvedPuzzle(puzzle: SolvedPuzzle): OpenRule {
+    const col = randomInt(6);
     const row = randomType();
-    const val = puzzle[row][this.col];
-    this.card = { type: row, value: val };
+    const val = puzzle[row][col];
+    return new OpenRule({ type: row, value: val }, col);
   }
 
   apply(board: Board): boolean {
@@ -141,27 +196,49 @@ export class OpenRule extends Rule {
   getAsText() {
     return `${this.card.type}${this.card.value} is at column ${this.col + 1}`;
   }
+
+  toJSON(): OpenRuleData {
+    return {
+      type: 'open',
+      card: this.card,
+      col: this.col,
+    };
+  }
+
+  static fromJSON(json: Omit<OpenRuleData, 'type'>): OpenRule {
+    return new OpenRule(json.card, json.col);
+  }
+}
+
+export interface UnderRuleData {
+  type: 'under';
+  card1: Card;
+  card2: Card;
 }
 
 /**
  * Rule: two cards are located in the same column.
  */
 export class UnderRule extends Rule {
-  card1: Card;
-  card2: Card;
+  readonly card1: Card;
+  readonly card2: Card;
 
-  constructor(puzzle: SolvedPuzzle) {
+  constructor(card1: Card, card2: Card) {
     super();
+    this.card1 = card1;
+    this.card2 = card2;
+  }
+
+  static FromSolvedPuzzle(puzzle: SolvedPuzzle): UnderRule {
     const col = randomInt(6);
     const row1 = randomType();
     const val1 = puzzle[row1][col];
-    this.card1 = { type: row1, value: val1 };
     let row2: CardType;
     do {
       row2 = randomType();
     } while (row2 === row1);
     const val2 = puzzle[row2][col];
-    this.card2 = { type: row2, value: val2 };
+    return new UnderRule({ type: row1, value: val1 }, { type: row2, value: val2 });
   }
 
   apply(board: Board): boolean {
@@ -184,32 +261,61 @@ export class UnderRule extends Rule {
   getAsText() {
     return `${this.card1.type}${this.card1.value} is the same column as ${this.card2.type}${this.card2.value}`;
   }
+
+  toJSON(): UnderRuleData {
+    return {
+      type: 'under',
+      card1: this.card1,
+      card2: this.card2,
+    };
+  }
+
+  static fromJSON(json: Omit<UnderRuleData, 'type'>): UnderRule {
+    return new UnderRule(json.card1, json.card2);
+  }
+}
+
+export interface BetweenRuleData {
+  type: 'between';
+  card1: Card;
+  card2: Card;
+  centerCard: Card;
 }
 
 /**
  * Rule: one card is located between two other cards.
  */
 export class BetweenRule extends Rule {
-  card1: Card;
-  card2: Card;
-  centerCard: Card;
+  readonly card1: Card;
+  readonly card2: Card;
+  readonly centerCard: Card;
 
-  constructor(puzzle: SolvedPuzzle) {
+  constructor(card1: Card, card2: Card, centerCard: Card) {
     super();
+    this.card1 = card1;
+    this.card2 = card2;
+    this.centerCard = centerCard;
+  }
+
+  static FromSolvedPuzzle(puzzle: SolvedPuzzle): BetweenRule {
     const centerType = randomType();
     const type1 = randomType();
     const type2 = randomType();
 
     const centerCol = randomInt(4) + 1; // 1 to 4
-    this.centerCard = { type: centerType, value: puzzle[centerType][centerCol] };
+    const centerCard = { type: centerType, value: puzzle[centerType][centerCol] };
 
+    let card1: Card;
+    let card2: Card;
     if (randomInt(2)) {
-      this.card1 = { type: type1, value: puzzle[type1][centerCol - 1] };
-      this.card2 = { type: type2, value: puzzle[type2][centerCol + 1] };
+      card1 = { type: type1, value: puzzle[type1][centerCol - 1] };
+      card2 = { type: type2, value: puzzle[type2][centerCol + 1] };
     } else {
-      this.card1 = { type: type1, value: puzzle[type1][centerCol + 1] };
-      this.card2 = { type: type2, value: puzzle[type2][centerCol - 1] };
+      card1 = { type: type1, value: puzzle[type1][centerCol + 1] };
+      card2 = { type: type2, value: puzzle[type2][centerCol - 1] };
     }
+
+    return new BetweenRule(card1, card2, centerCard);
   }
 
   apply(board: Board): boolean {
@@ -273,5 +379,41 @@ export class BetweenRule extends Rule {
 
   getAsText() {
     return `${this.centerCard.type}${this.centerCard.value} is between ${this.card1.type}${this.card1.value} and ${this.card2.type}${this.card2.value}`;
+  }
+
+  toJSON(): BetweenRuleData {
+    return {
+      type: 'between',
+      card1: this.card1,
+      card2: this.card2,
+      centerCard: this.centerCard,
+    };
+  }
+
+  static fromJSON(json: Omit<BetweenRuleData, 'type'>): BetweenRule {
+    return new BetweenRule(json.card1, json.card2, json.centerCard);
+  }
+}
+
+export function printRules(rules: Rule[]) {
+  for (const rule of rules) {
+    console.log(rule.getAsText());
+  }
+}
+
+export function ruleFromJSON(json: any): Rule {
+  const data = json as { type: string };
+  switch (data.type) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+    case 'near': return new NearRule(json.card1, json.card2);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+    case 'direction': return new DirectionRule(json.card1, json.card2);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+    case 'open': return new OpenRule(json.card, json.col);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+    case 'under': return new UnderRule(json.card1, json.card2);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+    case 'between': return new BetweenRule(json.card1, json.card2, json.centerCard);
+    default: throw new Error(`Unknown rule type ${String(data.type)}`);
   }
 }

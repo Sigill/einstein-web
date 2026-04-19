@@ -1,7 +1,7 @@
 import { Observable } from '../misc/observable.js';
 import { CardType, CardValue, ALL_TYPES, Card } from './types.js';
-import { SolvedPuzzle } from "./types.js";
 import { Square } from './Square.js';
+import { SolvedPuzzle } from './SolvedPuzzle.js';
 
 export type BoardEvents = {
   change: [];
@@ -25,7 +25,30 @@ export class Board extends Observable<BoardEvents> {
   private processingQueue = false;
   private modifiedSquares = new Set<Square>();
 
-  constructor() {
+  static create() {
+    return new Board();
+  }
+
+  static fromJSON(json: CardValue[][][]) {
+    const board = new Board();
+    for (let i = 0; i < ALL_TYPES.length; i++) {
+      for (let j = 0; j < 6; j++) {
+        const square = board.squares[ALL_TYPES[i]][j];
+        square.candidates.clear();
+        for (const value of json[i][j]) {
+          square.candidates.add(value);
+        }
+        if (square.candidates.size === 1) {
+          square.value = square.candidates.values().next().value as CardValue;
+        } else {
+          square.value = null;
+        }
+      }
+    }
+    return board;
+  }
+
+  private constructor() {
     super();
     this.squares = {} as Record<CardType, Square[]>;
     for (const type of ALL_TYPES) {
@@ -166,5 +189,9 @@ export class Board extends Observable<BoardEvents> {
     if (changed) {
       this.dispatchEvent('change');
     }
+  }
+
+  toJSON(): CardValue[][][] {
+    return ALL_TYPES.map(type => this.squares[type].map(square => Array.from(square.candidates)));
   }
 }

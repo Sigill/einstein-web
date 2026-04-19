@@ -8,5 +8,3 @@ export interface Card {
   type: CardType;
   value: CardValue;
 }
-
-export type SolvedPuzzle = Record<CardType, CardValue[]>;

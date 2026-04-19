@@ -1,26 +1,6 @@
 import { Board } from './Board.js';
-import { SolvedPuzzle, ALL_TYPES, ALL_VALUES } from './types.js';
-import { Rule, NearRule, OpenRule, UnderRule, DirectionRule, BetweenRule } from './Rules.js';
-import { shuffleArray } from '../misc/utils.js';
-import { SYMBOL_MAP } from '../misc/symbols.js';
-
-export function printPuzzle(puzzle: SolvedPuzzle) {
-  for (const type of ALL_TYPES) {
-    console.log(`${type}: ${puzzle[type].join(', ')}`);
-  }
-}
-
-export function printPuzzleWithSymbols(puzzle: SolvedPuzzle) {
-  for (const type of ALL_TYPES) {
-    console.log(`${type}: ${puzzle[type].map(v => SYMBOL_MAP[type][v]).join(', ')}`);
-  }
-}
-
-export function printRules(rules: Rule[]) {
-  for (const rule of rules) {
-    console.log(rule.getAsText());
-  }
-}
+import { Rule, NearRule, OpenRule, UnderRule, DirectionRule, BetweenRule, printRules } from './Rules.js';
+import { generateRandomSolvedPuzzle, printPuzzle, SolvedPuzzle } from './SolvedPuzzle.js';
 
 /**
  * Generates a random rule.
@@ -31,17 +11,17 @@ function genRule(puzzle: SolvedPuzzle): Rule {
     case 0:
     case 1:
     case 2:
-    case 3: return new NearRule(puzzle);
-    case 4: return new OpenRule(puzzle);
+    case 3: return NearRule.FromSolvedPuzzle(puzzle);
+    case 4: return OpenRule.FromSolvedPuzzle(puzzle);
     case 5:
-    case 6: return new UnderRule(puzzle);
+    case 6: return UnderRule.FromSolvedPuzzle(puzzle);
     case 7:
     case 8:
     case 9:
-    case 10: return new DirectionRule(puzzle);
+    case 10: return DirectionRule.FromSolvedPuzzle(puzzle);
     case 11:
     case 12:
-    case 13: return new BetweenRule(puzzle);
+    case 13: return BetweenRule.FromSolvedPuzzle(puzzle);
     default: return genRule(puzzle); // Shouldn't happen given the boundary, but kept for symmetry
   }
 }
@@ -50,7 +30,7 @@ function genRule(puzzle: SolvedPuzzle): Rule {
  * Checks if the puzzle can be solved with the given rules.
  */
 export function canSolve(puzzle: SolvedPuzzle, rules: Rule[]): boolean {
-  const board = new Board();
+  const board = Board.create();
   let changed;
 
   do {
@@ -107,18 +87,6 @@ function generateRules(puzzle: SolvedPuzzle, rules: Rule[]) {
     rules.push(rule);
     rulesDone = canSolve(puzzle, rules);
   } while (!rulesDone);
-}
-
-function generateRandomSolvedPuzzle() {
-  const puzzle: SolvedPuzzle = {} as SolvedPuzzle;
-
-  for (const type of ALL_TYPES) {
-    const row = [...ALL_VALUES];
-    shuffleArray(row);
-    puzzle[type] = row;
-  }
-
-  return puzzle;
 }
 
 export function generatePuzzle(): { puzzle: SolvedPuzzle; rules: Rule[] } {
