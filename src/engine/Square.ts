@@ -9,25 +9,24 @@ export type SquareEvents = {
 /**
  * Represents a single cell in the 6x6 game grid.
  * Tracks its remaining `candidates` and its final resolved `value`.
- * Intended to act as a model: dispatches events when candidates are blacklisted or a value is validated.
+ * Intended to act as a model: dispatches events when candidates are excluded or a value is set.
  */
 export class Square extends Observable<SquareEvents> {
-  public readonly candidates: Set<CardValue>;
   public value: CardValue | null = null;
 
   constructor(
     public readonly type: CardType,
-    public readonly col: number
+    public readonly col: number,
+    public readonly candidates = new Set(ALL_VALUES)
   ) {
     super();
-    this.candidates = new Set(ALL_VALUES);
   }
 
   private pendingChange = false;
   private pendingResolved: CardValue | null = null;
 
   // Internal mutations for the board
-  _setValidated(val: CardValue) {
+  _set(val: CardValue) {
     if (this.value === val) return false;
     this.value = val;
     this.candidates.clear();
@@ -37,7 +36,7 @@ export class Square extends Observable<SquareEvents> {
     return true;
   }
 
-  _setBlacklisted(val: CardValue) {
+  _exclude(val: CardValue) {
     if (this.value !== null) return false;
     if (this.candidates.delete(val)) {
       this.pendingChange = true;
@@ -63,7 +62,7 @@ export class Square extends Observable<SquareEvents> {
   /**
   * Attempts to resolve this square to a specific value immediately.
   */
-  validate(val: CardValue): boolean {
+  set(val: CardValue): boolean {
     if (this.value === val) return false;
 
     this.value = val;
@@ -79,7 +78,7 @@ export class Square extends Observable<SquareEvents> {
   * Removes a value from candidates.
   * Returns true if the candidate was successfully removed.
   */
-  blacklist(val: CardValue): boolean {
+  exclude(val: CardValue): boolean {
     if (this.value !== null) return false;
 
     if (this.candidates.delete(val)) {

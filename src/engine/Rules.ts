@@ -40,7 +40,7 @@ export class NearRule extends Rule {
     const hasRight = col === 5 ? false : board.isPossible(col + 1, nearCard);
 
     if (!hasRight && !hasLeft && board.isPossible(col, thisCard)) {
-      board.blacklistAt(col, thisCard);
+      board.excludeAt(col, thisCard);
       return true;
     }
     return false;
@@ -88,7 +88,7 @@ export class DirectionRule extends Rule {
     // Check col 0 to 5
     for (let i = 0; i < 6; i++) {
       if (board.isPossible(i, this.card2)) {
-        board.blacklistAt(i, this.card2);
+        board.excludeAt(i, this.card2);
         changed = true;
       }
       if (board.isPossible(i, this.card1)) {
@@ -99,7 +99,7 @@ export class DirectionRule extends Rule {
     // Check col 5 down to 0
     for (let i = 5; i >= 0; i--) {
       if (board.isPossible(i, this.card1)) {
-        board.blacklistAt(i, this.card1);
+        board.excludeAt(i, this.card1);
         changed = true;
       }
       if (board.isPossible(i, this.card2)) {
@@ -132,7 +132,7 @@ export class OpenRule extends Rule {
 
   apply(board: Board): boolean {
     if (!board.isDefined(this.col, this.card.type)) {
-      board.validateAt(this.col, this.card);
+      board.setAt(this.col, this.card);
       return true;
     }
     return false;
@@ -169,11 +169,11 @@ export class UnderRule extends Rule {
 
     for (let i = 0; i < 6; i++) {
       if (!board.isPossible(i, this.card1) && board.isPossible(i, this.card2)) {
-        board.blacklistAt(i, this.card2);
+        board.excludeAt(i, this.card2);
         changed = true;
       }
       if (!board.isPossible(i, this.card2) && board.isPossible(i, this.card1)) {
-        board.blacklistAt(i, this.card1);
+        board.excludeAt(i, this.card1);
         changed = true;
       }
     }
@@ -217,12 +217,12 @@ export class BetweenRule extends Rule {
 
     if (board.isPossible(0, this.centerCard)) {
       changed = true;
-      board.blacklistAt(0, this.centerCard);
+      board.excludeAt(0, this.centerCard);
     }
 
     if (board.isPossible(5, this.centerCard)) {
       changed = true;
-      board.blacklistAt(5, this.centerCard);
+      board.excludeAt(5, this.centerCard);
     }
 
     let goodLoop: boolean;
@@ -234,7 +234,7 @@ export class BetweenRule extends Rule {
           const conditionA = board.isPossible(i - 1, this.card1) && board.isPossible(i + 1, this.card2);
           const conditionB = board.isPossible(i - 1, this.card2) && board.isPossible(i + 1, this.card1);
           if (!(conditionA || conditionB)) {
-            board.blacklistAt(i, this.centerCard);
+            board.excludeAt(i, this.centerCard);
             goodLoop = true;
           }
         }
@@ -248,7 +248,7 @@ export class BetweenRule extends Rule {
           if (i >= 2) leftPossible = board.isPossible(i - 1, this.centerCard) && board.isPossible(i - 2, this.card1);
           if (i < 4) rightPossible = board.isPossible(i + 1, this.centerCard) && board.isPossible(i + 2, this.card1);
           if (!leftPossible && !rightPossible) {
-            board.blacklistAt(i, this.card2);
+            board.excludeAt(i, this.card2);
             goodLoop = true;
           }
         }
@@ -257,7 +257,7 @@ export class BetweenRule extends Rule {
           if (i >= 2) leftPossible = board.isPossible(i - 1, this.centerCard) && board.isPossible(i - 2, this.card2);
           if (i < 4) rightPossible = board.isPossible(i + 1, this.centerCard) && board.isPossible(i + 2, this.card2);
           if (!leftPossible && !rightPossible) {
-            board.blacklistAt(i, this.card1);
+            board.excludeAt(i, this.card1);
             goodLoop = true;
           }
         }

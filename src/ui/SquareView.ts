@@ -60,13 +60,13 @@ export class SquareView {
 
           miniCardContainer.addEventListener('click', (e) => {
             if (e.button === 0) { // left click
-              this.board.validate(this.square, val);
+              this.board.set(this.square, val);
             }
           });
 
           miniCardContainer.addEventListener('contextmenu', (e) => {
             e.preventDefault(); // prevent native menu
-            this.board.blacklist(this.square, val);
+            this.board.exclude(this.square, val);
           });
         }
 

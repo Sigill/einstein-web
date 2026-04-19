@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   for (const rule of rules) {
     if (rule instanceof OpenRule) {
-      board.validateAt(rule.col, rule.card);
+      board.setAt(rule.col, rule.card);
     } else {
       const hint = new Hint(rule);
       allHints.push(hint);

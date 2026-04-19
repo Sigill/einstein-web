@@ -8,7 +8,7 @@ export type BoardEvents = {
 };
 
 type Action = {
-  type: 'validate' | 'blacklist';
+  type: 'set' | 'exclude';
   square: Square;
   value: CardValue;
 };
@@ -36,22 +36,22 @@ export class Board extends Observable<BoardEvents> {
     }
   }
 
-  public validate(square: Square, value: CardValue) {
-    this.queue.push({ type: 'validate', square, value });
+  public set(square: Square, value: CardValue) {
+    this.queue.push({ type: 'set', square, value });
     this.processQueue();
   }
 
-  public validateAt(col: number, card: Card) {
-    this.validate(this.squares[card.type][col], card.value);
+  public setAt(col: number, card: Card) {
+    this.set(this.squares[card.type][col], card.value);
   }
 
-  public blacklist(square: Square, value: CardValue) {
-    this.queue.push({ type: 'blacklist', square, value });
+  public exclude(square: Square, value: CardValue) {
+    this.queue.push({ type: 'exclude', square, value });
     this.processQueue();
   }
 
-  public blacklistAt(col: number, card: Card) {
-    this.blacklist(this.squares[card.type][col], card.value);
+  public excludeAt(col: number, card: Card) {
+    this.exclude(this.squares[card.type][col], card.value);
   }
 
   public isPossible(col: number, card: Card): boolean {
@@ -98,10 +98,10 @@ export class Board extends Observable<BoardEvents> {
     try {
       while (this.queue.length > 0) {
         const action = this.queue.shift()!;
-        if (action.type === 'validate') {
-          this.handleValidate(action.square, action.value);
-        } else if (action.type === 'blacklist') {
-          this.handleBlacklist(action.square, action.value);
+        if (action.type === 'set') {
+          this.handleSet(action.square, action.value);
+        } else if (action.type === 'exclude') {
+          this.handleExclude(action.square, action.value);
         }
       }
     } finally {
@@ -111,42 +111,42 @@ export class Board extends Observable<BoardEvents> {
   }
 
   /**
-   * Validates a square and triggers a row-wide blacklist of that value.
+   * Sets a square and triggers a row-wide exclusion of that value.
    */
-  private handleValidate(square: Square, value: CardValue) {
-    if (square._setValidated(value)) {
+  private handleSet(square: Square, value: CardValue) {
+    if (square._set(value)) {
       this.modifiedSquares.add(square);
 
-      // Blacklist this value in all other squares in the same row
+      // Exclude this value in all other squares in the same row
       const row = this.squares[square.type];
       for (const other of row) {
         if (other !== square) {
-          this.queue.push({ type: 'blacklist', square: other, value });
+          this.queue.push({ type: 'exclude', square: other, value });
         }
       }
     }
   }
 
   /**
-   * Blacklists a candidate from a square and checks for immediate deductions:
+   * Excludes a candidate from a square and checks for immediate deductions:
    * 1. If the square has only one candidate left, validate it.
    * 2. If the removed value now only exists in one other square in the row, validate that square.
    */
-  private handleBlacklist(square: Square, value: CardValue) {
-    if (square._setBlacklisted(value)) {
+  private handleExclude(square: Square, value: CardValue) {
+    if (square._exclude(value)) {
       this.modifiedSquares.add(square);
 
       // Check if this square only has 1 candidate left
       if (square.candidates.size === 1) {
         const lastValue = square.candidates.values().next().value as CardValue;
-        this.queue.push({ type: 'validate', square, value: lastValue });
+        this.queue.push({ type: 'set', square, value: lastValue });
       }
 
       // Check if the removed value is now only present in exactly one square in the row
       const row = this.squares[square.type];
       const squaresWithValue = row.filter(s => s.candidates.has(value));
       if (squaresWithValue.length === 1) {
-        this.queue.push({ type: 'validate', square: squaresWithValue[0], value });
+        this.queue.push({ type: 'set', square: squaresWithValue[0], value });
       } else if (squaresWithValue.length === 0) {
         // This is a contradiction state, we could handle it or log it.
         // For now, doing nothing.
