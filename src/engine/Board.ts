@@ -1,5 +1,6 @@
 import { Observable } from '../misc/observable.js';
-import { CardType, CardValue, ALL_TYPES, SolvedPuzzle } from './types.js';
+import { CardType, CardValue, ALL_TYPES, Card } from './types.js';
+import { SolvedPuzzle } from "./types.js";
 import { Square } from './Square.js';
 
 export type BoardEvents = {
@@ -40,8 +41,8 @@ export class Board extends Observable<BoardEvents> {
     this.processQueue();
   }
 
-  public validateAt(col: number, type: CardType, value: CardValue) {
-    this.validate(this.squares[type][col], value);
+  public validateAt(col: number, card: Card) {
+    this.validate(this.squares[card.type][col], card.value);
   }
 
   public blacklist(square: Square, value: CardValue) {
@@ -49,12 +50,12 @@ export class Board extends Observable<BoardEvents> {
     this.processQueue();
   }
 
-  public blacklistAt(col: number, type: CardType, value: CardValue) {
-    this.blacklist(this.squares[type][col], value);
+  public blacklistAt(col: number, card: Card) {
+    this.blacklist(this.squares[card.type][col], card.value);
   }
 
-  public isPossible(col: number, type: CardType, value: CardValue): boolean {
-    return this.squares[type][col].candidates.has(value);
+  public isPossible(col: number, card: Card): boolean {
+    return this.squares[card.type][col].candidates.has(card.value);
   }
 
   public isDefined(col: number, type: CardType): boolean {

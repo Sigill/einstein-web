@@ -1,5 +1,5 @@
 import { Observable } from '../misc/observable.js';
-import { Card } from './types.js';
+import { Rule } from './Rules.js';
 
 export type HintEvents = {
   visibilityChanged: [boolean];
@@ -7,6 +7,10 @@ export type HintEvents = {
 
 export class Hint extends Observable<HintEvents> {
   public isHidden = false;
+
+  constructor(public readonly rule: Rule) {
+    super();
+  }
 
   toggle() {
     this.isHidden = !this.isHidden;
@@ -18,25 +22,5 @@ export class Hint extends Observable<HintEvents> {
       this.isHidden = hidden;
       this.dispatchEvent('visibilityChanged', this.isHidden);
     }
-  }
-}
-
-export class VerticalHint extends Hint {
-  constructor(
-    public readonly top: Card,
-    public readonly bottom: Card
-  ) {
-    super();
-  }
-}
-
-export type HorizontalIndicator = 'near' | 'direction';
-
-export class HorizontalHint extends Hint {
-  constructor(
-    public readonly cards: Card[],
-    public readonly indicator?: HorizontalIndicator
-  ) {
-    super();
   }
 }

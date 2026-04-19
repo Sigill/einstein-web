@@ -1,5 +1,5 @@
 import { Board } from './engine/Board.js';
-import { VerticalHint, HorizontalHint } from './engine/Hint.js';
+import { Hint } from './engine/Hint.js';
 import { BoardView } from './ui/BoardView.js';
 import { createVerticalHintElement, createHorizontalHintElement } from './ui/HintsView.js';
 import { generatePuzzleWithAcceptableAmountOfHints } from './engine/PuzzleGenerator.js';
@@ -14,29 +14,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const hintsVContainer = document.getElementById('hints-v-container')!;
   const hintsHContainer = document.getElementById('hints-h-container')!;
 
-  const allHints: (VerticalHint | HorizontalHint)[] = [];
+  const allHints: Hint[] = [];
 
   const { puzzle, rules } = generatePuzzleWithAcceptableAmountOfHints();
 
   for (const rule of rules) {
     if (rule instanceof OpenRule) {
-      board.validateAt(rule.col, rule.row, rule.thing);
-    } else if (rule instanceof UnderRule) {
-      const hint = new VerticalHint({ type: rule.row1, value: rule.thing1 }, { type: rule.row2, value: rule.thing2 });
+      board.validateAt(rule.col, rule.card);
+    } else {
+      const hint = new Hint(rule);
       allHints.push(hint);
-      hintsVContainer.appendChild(createVerticalHintElement(hint));
-    } else if (rule instanceof NearRule) {
-      const hint = new HorizontalHint([{ type: rule.type1, value: rule.val1 }, { type: rule.type2, value: rule.val2 }], 'near');
-      allHints.push(hint);
-      hintsHContainer.appendChild(createHorizontalHintElement(hint));
-    } else if (rule instanceof DirectionRule) {
-      const hint = new HorizontalHint([{ type: rule.row1, value: rule.thing1 }, { type: rule.row2, value: rule.thing2 }], 'direction');
-      allHints.push(hint);
-      hintsHContainer.appendChild(createHorizontalHintElement(hint));
-    } else if (rule instanceof BetweenRule) {
-      const hint = new HorizontalHint([{ type: rule.row1, value: rule.thing1 }, { type: rule.centerRow, value: rule.centerThing }, { type: rule.row2, value: rule.thing2 }]);
-      allHints.push(hint);
-      hintsHContainer.appendChild(createHorizontalHintElement(hint));
+      if (rule instanceof UnderRule) {
+        hintsVContainer.appendChild(createVerticalHintElement(hint));
+      } else if (rule instanceof NearRule || rule instanceof DirectionRule || rule instanceof BetweenRule) {
+        hintsHContainer.appendChild(createHorizontalHintElement(hint));
+      }
     }
   }
 
