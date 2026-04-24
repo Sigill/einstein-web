@@ -1,6 +1,6 @@
 import { randomInt } from '../misc/utils.js';
 import { Board } from './Board.js';
-import { CardType, ALL_TYPES, Card } from './Card.js';
+import { CardType, ALL_TYPES, Card, sameCard } from './Card.js';
 import { SolvedPuzzle } from './SolvedPuzzle.js';
 
 function randomType(): CardType {
@@ -10,6 +10,7 @@ function randomType(): CardType {
 export abstract class Rule {
   abstract apply(board: Board): boolean;
   abstract getAsText(): string;
+  abstract hasCard(card: Card): boolean;
 
   abstract toJSON(): NearRuleData | DirectionRuleData | OpenRuleData | UnderRuleData | BetweenRuleData;
 }
@@ -74,6 +75,10 @@ export class NearRule extends Rule {
 
   getAsText(): string {
     return `${this.card1.type}${this.card1.value} is near to ${this.card2.type}${this.card2.value}`;
+  }
+
+  hasCard(card: Card): boolean {
+    return sameCard(this.card1, card) || sameCard(this.card2, card);
   }
 
   toJSON(): NearRuleData {
@@ -146,6 +151,10 @@ export class DirectionRule extends Rule {
     return `${this.card1.type}${this.card1.value} is from the left of ${this.card2.type}${this.card2.value}`;
   }
 
+  hasCard(card: Card): boolean {
+    return sameCard(this.card1, card) || sameCard(this.card2, card);
+  }
+
   toJSON(): DirectionRuleData {
     return {
       type: 'direction',
@@ -195,6 +204,10 @@ export class OpenRule extends Rule {
 
   getAsText() {
     return `${this.card.type}${this.card.value} is at column ${this.col + 1}`;
+  }
+
+  hasCard(card: Card): boolean {
+    return sameCard(this.card, card);
   }
 
   toJSON(): OpenRuleData {
@@ -260,6 +273,10 @@ export class UnderRule extends Rule {
 
   getAsText() {
     return `${this.card1.type}${this.card1.value} is the same column as ${this.card2.type}${this.card2.value}`;
+  }
+
+  hasCard(card: Card): boolean {
+    return sameCard(this.card1, card) || sameCard(this.card2, card);
   }
 
   toJSON(): UnderRuleData {
@@ -379,6 +396,10 @@ export class BetweenRule extends Rule {
 
   getAsText() {
     return `${this.centerCard.type}${this.centerCard.value} is between ${this.card1.type}${this.card1.value} and ${this.card2.type}${this.card2.value}`;
+  }
+
+  hasCard(card: Card): boolean {
+    return sameCard(this.card1, card) || sameCard(this.card2, card) || sameCard(this.centerCard, card);
   }
 
   toJSON(): BetweenRuleData {

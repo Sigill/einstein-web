@@ -8,3 +8,7 @@ export interface Card {
   type: CardType;
   value: CardValue;
 }
+
+export function sameCard(card1: Card, card2: Card): boolean {
+  return card1.type === card2.type && card1.value === card2.value;
+}
