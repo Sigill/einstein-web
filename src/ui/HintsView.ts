@@ -2,8 +2,9 @@ import { Hint } from '../engine/Hint.js';
 import { NearRule, DirectionRule, UnderRule, BetweenRule } from '../engine/Rules.js';
 import { createCardElement } from './CardView.js';
 import { Card } from '../engine/Card.js';
+import { VisibilityObservable } from './VisibilityObservable.js';
 
-export function createVerticalHintElement(hint: Hint): HTMLElement {
+export function createVerticalHintElement(hint: Hint, hintViewVisibility: VisibilityObservable): HTMLElement {
   if (!(hint.rule instanceof UnderRule)) {
     throw new Error('createVerticalHintElement expected UnderRule');
   }
@@ -19,20 +20,24 @@ export function createVerticalHintElement(hint: Hint): HTMLElement {
   el.appendChild(topCard);
   el.appendChild(bottomCard);
 
-  hint.visibility.addEventListener('visibilityChanged', (visible: boolean) => {
-    el.classList.toggle('hidden', !visible);
-  });
+  const updateVisibility = () => {
+    const isHidden = hint.visibility.isVisible !== hintViewVisibility.isVisible;
+    el.classList.toggle('hidden', isHidden);
+  };
+
+  hint.visibility.addEventListener('visibilityChanged', updateVisibility);
+  hintViewVisibility.addEventListener('visibilityChanged', updateVisibility);
 
   el.addEventListener('click', () => {
     hint.visibility.toggle();
   });
 
-  if (!hint.visibility.isVisible) el.classList.add('hidden');
+  updateVisibility();
 
   return el;
 }
 
-export function createHorizontalHintElement(hint: Hint): HTMLElement {
+export function createHorizontalHintElement(hint: Hint, hintViewVisibility: VisibilityObservable): HTMLElement {
   const el = document.createElement('div');
   el.className = 'hint horizontal-hint';
 
@@ -58,15 +63,19 @@ export function createHorizontalHintElement(hint: Hint): HTMLElement {
     throw new Error('createHorizontalHintElement expected NearRule, DirectionRule or BetweenRule');
   }
 
-  hint.visibility.addEventListener('visibilityChanged', (visible: boolean) => {
-    el.classList.toggle('hidden', !visible);
-  });
+  const updateVisibility = () => {
+    const isHidden = hint.visibility.isVisible !== hintViewVisibility.isVisible;
+    el.classList.toggle('hidden', isHidden);
+  };
+
+  hint.visibility.addEventListener('visibilityChanged', updateVisibility);
+  hintViewVisibility.addEventListener('visibilityChanged', updateVisibility);
 
   el.addEventListener('click', () => {
     hint.visibility.toggle();
   });
 
-  if (!hint.visibility.isVisible) el.classList.add('hidden');
+  updateVisibility();
 
   return el;
 }

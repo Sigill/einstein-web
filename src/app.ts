@@ -83,27 +83,28 @@ document.addEventListener('DOMContentLoaded', () => {
   const hintsVContainer = document.getElementById('hints-v-container')!;
   const hintsHContainer = document.getElementById('hints-h-container')!;
 
+  // Global observable to control if the hint view should be displayed
+  const hintViewVisibility = new VisibilityObservable();
+
   const hintToElement = new Map<Hint, HTMLElement>();
   for (const hint of allHints) {
     if (hint.rule instanceof OpenRule) continue;
 
     if (hint.rule instanceof UnderRule) {
-      const el = createVerticalHintElement(hint);
+      const el = createVerticalHintElement(hint, hintViewVisibility);
       hintsVContainer.appendChild(el);
       hintToElement.set(hint, el);
     } else if (hint.rule instanceof NearRule || hint.rule instanceof DirectionRule || hint.rule instanceof BetweenRule) {
-      const el = createHorizontalHintElement(hint);
+      const el = createHorizontalHintElement(hint, hintViewVisibility);
       hintsHContainer.appendChild(el);
       hintToElement.set(hint, el);
     }
   }
 
-  // Switch button toggles the visibility state of all hints by inverting them
+  // Switch button toggles the visibility state of the entire hint view
   const btnSwitch = document.getElementById('btn-switch')!;
   btnSwitch.addEventListener('click', () => {
-    for (const hint of allHints) {
-      hint.visibility.toggle();
-    }
+    hintViewVisibility.toggle();
   });
 
   const btnHint = document.getElementById('btn-hint')!;
