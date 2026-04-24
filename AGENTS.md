@@ -15,15 +15,11 @@ It uses an Observable pattern to react to game state changes, ensuring real-time
   - Hints can be visually toggled (greyed out or restored) by clicking on them.
 - **Control Panel**: Contains action buttons like Pause, Switch (inverts hint visibility), Exit, Save, Options, and Help.
 
-## Game Mechanics & Logic
-
-The game implements an automatic constraint propagation system (a "cascade") to assist in solving the puzzle. This logic is centralized in the `Board` class and triggers whenever a state change occurs:
-
-- **Validation Propagation**: When a card value is validated for a specific square (set as the only option), that same value is automatically blacklisted from all other squares in the same row.
-- **Blacklist Propagation**: When a candidate is blacklisted from a square, two checks are performed:
-  - **Square-level**: If a square has only one candidate remaining, it is automatically validated with that value.
-  - **Row-level**: If a specific card value remains a candidate in only one square across the entire row, that square is automatically validated with that value.
-- **Queue System**: To handle the resulting chain reactions, the `Board` uses a FIFO (First-In-First-Out) queue. This ensures that all indirect deductions are processed sequentially and the game state remains consistent before UI updates are triggered.
+- **Constraint Scanning**: The `Board` employs a scanning mechanism (`checkSingles`) that systematically enforces row-level constraints. Whenever a change occurs, it re-evaluates the entire row:
+  - **Square-level**: If a square has only one candidate remaining, it is validated.
+  - **Row-level**: If a specific card value remains a candidate in only one square across the entire row, that square is validated with that value.
+  - This process repeats recursively until no more deductions can be made.
+- **Batching System**: To prevent premature UI updates and ensure atomic state transitions, operations are batched. Events are only dispatched once the board reaches a steady state and no further automatic deductions are possible.
 
 ## Puzzle Generation & Rule Logic
 

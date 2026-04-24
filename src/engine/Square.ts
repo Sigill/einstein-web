@@ -59,35 +59,6 @@ export class Square extends Observable<SquareEvents> {
     return changed;
   }
 
-  /**
-  * Attempts to resolve this square to a specific value immediately.
-  */
-  set(val: CardValue): boolean {
-    if (this.value === val) return false;
-
-    this.value = val;
-    this.candidates.clear();
-    this.candidates.add(val);
-
-    this.dispatchEvent('resolved', val);
-    this.dispatchEvent('change');
-    return true;
-  }
-
-  /**
-  * Removes a value from candidates.
-  * Returns true if the candidate was successfully removed.
-  */
-  exclude(val: CardValue): boolean {
-    if (this.value !== null) return false;
-
-    if (this.candidates.delete(val)) {
-      this.dispatchEvent('change');
-      return true;
-    }
-    return false;
-  }
-
   isResolved(): boolean {
     return this.value !== null;
   }
