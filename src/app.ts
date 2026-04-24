@@ -8,10 +8,31 @@ import { VisibilityObservable } from './ui/VisibilityObservable.js';
 import { toJSON as serializePuzzle, fromJSON as puzzleFromJSON, SolvedPuzzle } from './engine/SolvedPuzzle.js';
 import { CardValue } from './engine/Card.js';
 import { findFirstApplicableHint, findFirstDiff, blinkHint, blinkSquareCandidate } from './ui/HintUtils.js';
+import { ScreenManager } from './ui/screens/ScreenManager.js';
+import { createPauseScreen } from './ui/screens/PauseScreen.js';
 
 // (window as any).debugGameState = ;
 
 document.addEventListener('DOMContentLoaded', () => {
+  const screenManager = new ScreenManager(document.getElementById('screen-overlay')!);
+
+  // Later a timer will subscribe to these
+  screenManager.onToggle((active) => {
+    console.log(`Game ${active ? 'paused' : 'resumed'}`);
+  });
+
+  const pauseGame = () => {
+    screenManager.push(createPauseScreen());
+  };
+
+  document.getElementById('btn-pause')!.addEventListener('click', pauseGame);
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      pauseGame();
+    }
+  });
+
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   const debugData = (window as any).debugGameState as {
     board: CardValue[][][],
