@@ -1,6 +1,6 @@
 import { randomInt } from '../misc/utils.js';
 import { Board } from './Board.js';
-import { CardType, ALL_TYPES, Card } from './types.js';
+import { CardType, ALL_TYPES, Card } from './Card.js';
 import { SolvedPuzzle } from './SolvedPuzzle.js';
 
 function randomType(): CardType {

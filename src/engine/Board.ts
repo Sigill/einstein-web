@@ -1,5 +1,5 @@
 import { Observable } from '../misc/observable.js';
-import { CardType, CardValue, ALL_TYPES, Card } from './types.js';
+import { CardType, CardValue, ALL_TYPES, Card } from './Card.js';
 import { Square } from './Square.js';
 import { SolvedPuzzle } from './SolvedPuzzle.js';
 

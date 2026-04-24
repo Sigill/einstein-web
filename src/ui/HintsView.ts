@@ -1,7 +1,7 @@
 import { Hint } from '../engine/Hint.js';
 import { NearRule, DirectionRule, UnderRule, BetweenRule } from '../engine/Rules.js';
 import { createCardElement } from './CardView.js';
-import { Card } from '../engine/types.js';
+import { Card } from '../engine/Card.js';
 
 export function createVerticalHintElement(hint: Hint): HTMLElement {
   if (!(hint.rule instanceof UnderRule)) {

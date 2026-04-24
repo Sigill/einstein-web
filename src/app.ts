@@ -6,7 +6,7 @@ import { generatePuzzleWithAcceptableAmountOfHints } from './engine/PuzzleGenera
 import { OpenRule, NearRule, DirectionRule, UnderRule, BetweenRule, ruleFromJSON } from './engine/Rules.js';
 import { VisibilityObservable } from './ui/VisibilityObservable.js';
 import { toJSON as serializePuzzle, fromJSON as puzzleFromJSON, SolvedPuzzle } from './engine/SolvedPuzzle.js';
-import { CardValue, ALL_TYPES, CardType } from './engine/types.js';
+import { CardValue, ALL_TYPES, CardType } from './engine/Card.js';
 
 // (window as any).debugGameState = ;
 

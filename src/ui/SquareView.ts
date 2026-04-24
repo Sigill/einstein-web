@@ -1,6 +1,6 @@
 import { Square } from '../engine/Square.js';
 import { Board } from '../engine/Board.js';
-import { ALL_VALUES } from '../engine/types.js';
+import { ALL_VALUES } from '../engine/Card.js';
 import { createCardElement } from './CardView.js';
 
 export class SquareView {

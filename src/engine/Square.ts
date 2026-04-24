@@ -1,5 +1,5 @@
 import { Observable } from '../misc/observable.js';
-import { CardType, CardValue, ALL_VALUES } from './types.js';
+import { CardType, CardValue, ALL_VALUES } from './Card.js';
 
 export type SquareEvents = {
   change: [];

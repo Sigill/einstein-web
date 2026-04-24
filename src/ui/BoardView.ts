@@ -1,5 +1,5 @@
 import { Board } from '../engine/Board.js';
-import { ALL_TYPES, CardType } from '../engine/types.js';
+import { ALL_TYPES, CardType } from '../engine/Card.js';
 import { SquareView } from './SquareView.js';
 
 export class BoardView {

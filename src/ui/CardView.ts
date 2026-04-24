@@ -1,4 +1,4 @@
-import { Card, CardValue } from '../engine/types.js';
+import { Card, CardValue } from '../engine/Card.js';
 import { SYMBOL_MAP } from '../misc/symbols.js';
 
 const SHAPE_SVGS: Record<CardValue, string> = {

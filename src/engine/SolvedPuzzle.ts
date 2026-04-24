@@ -1,6 +1,6 @@
 import { SYMBOL_MAP } from "../misc/symbols";
 import { shuffleArray } from "../misc/utils";
-import { ALL_TYPES, ALL_VALUES, CardType, CardValue } from "./types";
+import { ALL_TYPES, ALL_VALUES, CardType, CardValue } from "./Card";
 
 export type SolvedPuzzle = Record<CardType, CardValue[]>;
 
