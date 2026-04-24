@@ -31,6 +31,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   timer.start();
 
+  document.getElementById('btn-new-game')!.addEventListener('click', () => {
+    window.location.reload();
+  });
+
   const pauseGame = () => {
     screenManager.push(createPauseScreen());
   };
@@ -101,14 +105,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Switch button toggles the visibility state of the entire hint view
-  const btnSwitch = document.getElementById('btn-switch')!;
-  btnSwitch.addEventListener('click', () => {
+  // Toggle hints button toggles the visibility state of the entire hint view
+  const btnToggleHints = document.getElementById('btn-toggle-hints')!;
+  btnToggleHints.addEventListener('click', () => {
     hintViewVisibility.toggle();
   });
 
-  const btnHint = document.getElementById('btn-hint')!;
-  btnHint.addEventListener('click', () => {
+  const btnRevealHint = document.getElementById('btn-reveal-hint')!;
+  btnRevealHint.addEventListener('click', () => {
     const hint = findFirstApplicableHint(board.toJSON(), allHints);
     if (hint) {
       blinkHint(hint, hintToElement);
@@ -117,8 +121,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  const btnAnalyze = document.getElementById('btn-hint+')!;
-  btnAnalyze.addEventListener('click', () => {
+  const btnRevealCard = document.getElementById('btn-reveal-card')!;
+  btnRevealCard.addEventListener('click', () => {
     const oldState = board.toJSON();
     const hint = findFirstApplicableHint(oldState, allHints);
     if (hint) {
