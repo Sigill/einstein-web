@@ -37,17 +37,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const generated = generatePuzzleWithAcceptableAmountOfHints();
     puzzle = generated.puzzle;
 
-    for (const rule of generated.rules) {
-      const hint: Hint = {
-        visibility: new VisibilityObservable(),
-        rule,
-      };
-      allHints.push(hint);
+    allHints.push(...generated.rules.map(rule => ({
+      visibility: new VisibilityObservable(),
+      rule,
+    })));
 
-      if (rule instanceof OpenRule) {
-        board.setAt(rule.col, rule.card);
-      }
-    }
+    board.applyRules(generated.rules.filter(r => r instanceof OpenRule));
   }
 
   const boardView = new BoardView(board);

@@ -196,6 +196,17 @@ export class Board extends Observable<BoardEvents> {
     }
   }
 
+  /**
+   * Applies a collection of rules in a single batch, minimizing the number of events emitted.
+   */
+  public applyRules(rules: Iterable<{ apply(board: Board): boolean }>) {
+    this.batch(() => {
+      for (const rule of rules) {
+        rule.apply(this);
+      }
+    });
+  }
+
   private batch(fn: () => void) {
     if (this.isBatching) {
       fn();
