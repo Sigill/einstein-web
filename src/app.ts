@@ -137,6 +137,28 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   let finished = false;
+
+  let logTimeout: number | undefined;
+  const logGameState = () => {
+    if (finished) return;
+    if (logTimeout !== undefined) return;
+    logTimeout = window.setTimeout(() => {
+      logTimeout = undefined;
+      if (finished) return;
+      const data = {
+        puzzle: serializePuzzle(puzzle),
+        hints: allHints.map(({ rule, visibility }) => {
+          return {
+            rule: rule.toJSON(),
+            visible: visibility.isVisible,
+          };
+        }),
+        board: board.toJSON(),
+      };
+      console.log(data);
+    }, 0);
+  };
+
   board.addEventListener('change', () => {
     if (finished) return;
 
@@ -160,19 +182,12 @@ document.addEventListener('DOMContentLoaded', () => {
       }));
     }
 
-    if (!finished) {
-      // This doesn't trigger after hiding a hint.
-      const data = {
-        puzzle: serializePuzzle(puzzle),
-        hints: allHints.map(({ rule, visibility }) => {
-          return {
-            rule: rule.toJSON(),
-            visible: visibility.isVisible,
-          };
-        }),
-        board: board.toJSON(),
-      };
-      console.log(data);
-    }
+    logGameState();
   });
+
+  for (const hint of allHints) {
+    hint.visibility.addEventListener('visibilityChanged', () => {
+      logGameState();
+    });
+  }
 });
