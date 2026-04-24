@@ -10,16 +10,26 @@ import { CardValue } from './engine/Card.js';
 import { findFirstApplicableHint, findFirstDiff, blinkHint, blinkSquareCandidate } from './ui/HintUtils.js';
 import { ScreenManager } from './ui/screens/ScreenManager.js';
 import { createPauseScreen } from './ui/screens/PauseScreen.js';
+import { createWinScreen } from './ui/screens/WinScreen.js';
+import { createLoseScreen } from './ui/screens/LoseScreen.js';
+import { Timer } from './ui/Timer.js';
 
 // (window as any).debugGameState = ;
 
 document.addEventListener('DOMContentLoaded', () => {
   const screenManager = new ScreenManager(document.getElementById('screen-overlay')!);
 
-  // Later a timer will subscribe to these
+  const timer = new Timer(document.getElementById('timer-container')!);
+
   screenManager.onToggle((active) => {
-    console.log(`Game ${active ? 'paused' : 'resumed'}`);
+    if (active) {
+      timer.pause();
+    } else {
+      timer.start();
+    }
   });
+
+  timer.start();
 
   const pauseGame = () => {
     screenManager.push(createPauseScreen());
@@ -132,10 +142,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!board.isValid(puzzle)) {
       finished = true;
-      setTimeout(() => alert('You Lose!'), 50);
+      timer.stop();
+      screenManager.push(createLoseScreen({
+        onRestart: () => window.location.reload(),
+      }));
     } else if (board.isSolved()) {
       finished = true;
-      setTimeout(() => alert('You Win!'), 50);
+      timer.stop();
+      const timeMs = timer.getElapsedTime();
+      const bestTimeMs = timer.getBestTime();
+      const isBest = timer.saveBestTime();
+      screenManager.push(createWinScreen({
+        timeMs,
+        isBest,
+        bestTimeMs,
+        onRestart: () => window.location.reload(),
+      }));
     }
 
     if (!finished) {
