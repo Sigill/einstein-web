@@ -184,6 +184,8 @@ function makeHintViews(
   hintsHContainer: HTMLElement,
 ): Map<Hint, HTMLElement> {
   const hintToElement = new Map<Hint, HTMLElement>();
+  let hCount = 0;
+  let vCount = 0;
   for (const hint of hints) {
     if (hint.rule instanceof OpenRule) continue;
 
@@ -191,11 +193,28 @@ function makeHintViews(
       const el = createVerticalHintElement(hint, hintViewVisibility);
       hintsVContainer.appendChild(el);
       hintToElement.set(hint, el);
+      vCount++;
     } else if (hint.rule instanceof NearRule || hint.rule instanceof DirectionRule || hint.rule instanceof BetweenRule) {
       const el = createHorizontalHintElement(hint, hintViewVisibility);
       hintsHContainer.appendChild(el);
       hintToElement.set(hint, el);
+      hCount++;
     }
   }
+
+  // Create dummy hints to fill the grid.
+
+  for (let i = hCount; i < 24; i++) {
+    const el = document.createElement('div');
+    el.classList.add('hint', 'horizontal-hint');
+    hintsHContainer.appendChild(el);
+  }
+
+  for (let i = vCount; i < 15; i++) {
+    const el = document.createElement('div');
+    el.classList.add('hint', 'vertical-hint');
+    hintsVContainer.appendChild(el);
+  }
+
   return hintToElement;
 }

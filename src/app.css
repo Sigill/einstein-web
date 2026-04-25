@@ -5,7 +5,13 @@
   --card-bg-hover: #3d3d3d;
   --card-bg-resolved: #404040;
   --border-color: #4a4a4a;
-  --cell-size: 80px;
+  /*
+   * --cell-size drives almost every dimension in the layout.
+   * It is clamped between 50 px and 100 px and scales with the smaller of
+   * 6 % viewport-width or 9 % viewport-height so the whole board remains
+   * visible without scrolling on most screens.
+   */
+  --cell-size: clamp(50px, min(6vw, 9vh), 100px);
   --mini-size: calc(var(--cell-size) / 3.3);
 
   --color-A: #ff7b7b;
@@ -26,12 +32,15 @@ body {
     "board hints-h"
     "buttons hints-h"
     "hints-v hints-v";
-  grid-template-columns: min-content 1fr;
+  grid-template-columns: min-content min-content;
   grid-template-rows: min-content min-content min-content;
-  gap: 30px;
   height: min-content;
   min-height: 100vh;
+  justify-content: center;
+  align-content: center;
   box-sizing: border-box;
+  /* Allow scrollbars when the content overflows (e.g. very small viewports) */
+  overflow: auto;
 
   /*
    * Use the Open Sans font.
@@ -180,7 +189,8 @@ body {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
-  width: 520px;
+  /* Match the board width: 6 cells + 5 gaps (4 px each) + 2×board-padding (10 px each) */
+  width: calc(6 * var(--cell-size) + 5 * 4px + 2 * 10px);
   padding: 10px;
   box-sizing: border-box;
   justify-self: start;
@@ -193,7 +203,7 @@ button {
   border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 10px 15px;
-  font-size: 14px;
+  font-size: calc(var(--cell-size) * 0.175);
   cursor: pointer;
   transition: background 0.2s;
 }
@@ -208,7 +218,7 @@ button:hover {
   border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 10px 15px;
-  font-size: 16px;
+  font-size: calc(var(--cell-size) * 0.2);
   font-family: "Courier New", Courier, monospace;
   display: flex;
   align-items: center;
@@ -238,7 +248,7 @@ button:hover {
   padding: 10px;
   align-content: start;
   grid-auto-flow: column;
-  justify-self: start;
+  justify-self: end;
   align-self: start;
 }
 
@@ -246,7 +256,6 @@ button:hover {
   display: flex;
   background: var(--card-bg);
   border-radius: 8px;
-  border: 1px solid var(--border-color);
   cursor: pointer;
   transition: opacity 0.3s;
   align-items: center;
@@ -255,21 +264,25 @@ button:hover {
   box-sizing: border-box;
 }
 
-.hint.hidden {
+.hint:empty {
+  cursor: default;
+}
+
+.hint.hidden,
+.hint:empty {
   opacity: 0.2;
 }
 
 .vertical-hint {
   flex-direction: column;
   width: var(--cell-size);
-  padding: 4px 0;
+  height: calc(var(--cell-size) * 2);
 }
 
 .horizontal-hint {
   flex-direction: row;
+  width: calc(var(--cell-size) * 3);
   height: var(--cell-size);
-  width: min-content;
-  padding: 0 4px;
 }
 
 .hint-indicator {

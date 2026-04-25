@@ -10,8 +10,8 @@ It uses an Observable pattern to react to game state changes, ensuring real-time
   - **Left-click** validates the card, setting it as the only option for that cell and discarding other candidates.
   - **Right-click** blacklists the candidate, removing it from the candidate list.
 - **Hints**:
-  - **Vertical hints**: Displayed in a row below the main grid. Consists of two vertically stacked cards.
-  - **Horizontal hints**: Displayed in columns on the top-right. Features a near indicator (↔) or an direction indicator (…) to guide spatial relations.
+  - **Vertical hints**: Displayed in a single fixed row of up to 15 hints below the main grid. Each hint consists of two vertically stacked cards.
+  - **Horizontal hints**: Displayed to the right of the main grid using exactly **3 columns of 8 hints** (up to 24 hints total). Each hint features a near indicator (↔) or a direction indicator (…) to guide spatial relations.
   - Hints can be visually toggled (greyed out or restored) by clicking on them.
 - **Control Panel**: Contains action buttons like Pause, Switch (inverts hint visibility), Exit, Save, Options, and Help.
 
