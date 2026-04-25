@@ -416,6 +416,8 @@ export class BetweenRule extends Rule {
   }
 }
 
+export type RulesTypes = OpenRule | NearRule | DirectionRule | UnderRule | BetweenRule;
+
 export function printRules(rules: Rule[]) {
   for (const rule of rules) {
     console.log(rule.getAsText());

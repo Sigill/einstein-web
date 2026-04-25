@@ -1,9 +1,9 @@
 import { Board } from './engine/Board.js';
-import { Hint } from './engine/Hint.js';
+import { Hint, makeHint } from './engine/Hint.js';
 import { BoardView } from './ui/BoardView.js';
 import { createVerticalHintElement, createHorizontalHintElement } from './ui/HintsView.js';
 import { generatePuzzleWithAcceptableAmountOfHints } from './engine/PuzzleGenerator.js';
-import { OpenRule, NearRule, DirectionRule, UnderRule, BetweenRule, ruleFromJSON } from './engine/Rules.js';
+import { OpenRule, NearRule, DirectionRule, UnderRule, BetweenRule, ruleFromJSON, RulesTypes } from './engine/Rules.js';
 import { VisibilityObservable } from './ui/VisibilityObservable.js';
 import { toJSON as serializePuzzle, fromJSON as puzzleFromJSON, SolvedPuzzle } from './engine/SolvedPuzzle.js';
 import { CardValue } from './engine/Card.js';
@@ -14,9 +14,9 @@ import { createWinScreen } from './ui/screens/WinScreen.js';
 import { createLoseScreen } from './ui/screens/LoseScreen.js';
 import { Timer } from './ui/Timer.js';
 
-// (window as any).debugGameState = ;
-
 document.addEventListener('DOMContentLoaded', () => {
+  const { board, puzzle, hints } = generate();
+
   const screenManager = new ScreenManager(document.getElementById('screen-overlay')!);
 
   const timer = new Timer(document.getElementById('timer-container')!);
@@ -47,40 +47,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  const debugData = (window as any).debugGameState as {
-    board: CardValue[][][],
-    puzzle: CardValue[][],
-    hints: { rule: any, visible: boolean }[]
-  } | undefined;
-
-  let board: Board;
-  let puzzle: SolvedPuzzle;
-  const allHints: Hint[] = [];
-
-  if (debugData) {
-    board = Board.fromJSON(debugData.board);
-    puzzle = puzzleFromJSON(debugData.puzzle);
-    debugData.hints.forEach((h) => {
-      const rule = ruleFromJSON(h.rule);
-      allHints.push({
-        rule,
-        visibility: new VisibilityObservable(h.visible),
-      });
-    });
-  } else {
-    board = Board.create();
-    const generated = generatePuzzleWithAcceptableAmountOfHints();
-    puzzle = generated.puzzle;
-
-    allHints.push(...generated.rules.map(rule => ({
-      visibility: new VisibilityObservable(),
-      rule,
-    })));
-
-    board.applyRules(generated.rules.filter(r => r instanceof OpenRule));
-  }
-
   const boardView = new BoardView(board);
   document.getElementById('board-container')!.appendChild(boardView.element);
 
@@ -90,30 +56,15 @@ document.addEventListener('DOMContentLoaded', () => {
   // Global observable to control if the hint view should be displayed
   const hintViewVisibility = new VisibilityObservable();
 
-  const hintToElement = new Map<Hint, HTMLElement>();
-  for (const hint of allHints) {
-    if (hint.rule instanceof OpenRule) continue;
-
-    if (hint.rule instanceof UnderRule) {
-      const el = createVerticalHintElement(hint, hintViewVisibility);
-      hintsVContainer.appendChild(el);
-      hintToElement.set(hint, el);
-    } else if (hint.rule instanceof NearRule || hint.rule instanceof DirectionRule || hint.rule instanceof BetweenRule) {
-      const el = createHorizontalHintElement(hint, hintViewVisibility);
-      hintsHContainer.appendChild(el);
-      hintToElement.set(hint, el);
-    }
-  }
+  const hintToElement = makeHintViews(hints, hintViewVisibility, hintsVContainer, hintsHContainer);
 
   // Toggle hints button toggles the visibility state of the entire hint view
-  const btnToggleHints = document.getElementById('btn-toggle-hints')!;
-  btnToggleHints.addEventListener('click', () => {
+  document.getElementById('btn-toggle-hints')!.addEventListener('click', () => {
     hintViewVisibility.toggle();
   });
 
-  const btnRevealHint = document.getElementById('btn-reveal-hint')!;
-  btnRevealHint.addEventListener('click', () => {
-    const hint = findFirstApplicableHint(board.toJSON(), allHints);
+  document.getElementById('btn-reveal-hint')!.addEventListener('click', () => {
+    const hint = findFirstApplicableHint(board.toJSON(), hints);
     if (hint) {
       blinkHint(hint, hintToElement);
     } else {
@@ -121,10 +72,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  const btnRevealCard = document.getElementById('btn-reveal-card')!;
-  btnRevealCard.addEventListener('click', () => {
+  document.getElementById('btn-reveal-card')!.addEventListener('click', () => {
     const oldState = board.toJSON();
-    const hint = findFirstApplicableHint(oldState, allHints);
+    const hint = findFirstApplicableHint(oldState, hints);
     if (hint) {
       blinkHint(hint, hintToElement);
 
@@ -152,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (finished) return;
       const data = {
         puzzle: serializePuzzle(puzzle),
-        hints: allHints.map(({ rule, visibility }) => {
+        hints: hints.map(({ rule, visibility }) => {
           return {
             rule: rule.toJSON(),
             visible: visibility.isVisible,
@@ -190,9 +140,62 @@ document.addEventListener('DOMContentLoaded', () => {
     logGameState();
   });
 
-  for (const hint of allHints) {
+  for (const hint of hints) {
     hint.visibility.addEventListener('visibilityChanged', () => {
       logGameState();
     });
   }
 });
+
+function generate(debugData?: {
+  board: CardValue[][][];
+  puzzle: CardValue[][];
+  hints: { rule: RulesTypes, visible: boolean }[]
+}): {
+  board: Board;
+  puzzle: SolvedPuzzle;
+  hints: Hint[]
+} {
+  if (debugData !== undefined) {
+    const board = Board.fromJSON(debugData.board);
+    const puzzle = puzzleFromJSON(debugData.puzzle);
+    const hints = debugData.hints.map((h) => {
+      const rule = ruleFromJSON(h.rule);
+      return makeHint(rule, h.visible);
+    });
+
+    return { board, puzzle, hints };
+  } else {
+    const board = Board.create();
+    const generated = generatePuzzleWithAcceptableAmountOfHints();
+    const puzzle = generated.puzzle;
+    const hints = generated.rules.map(rule => makeHint(rule));
+
+    board.applyRules(generated.rules.filter(r => r instanceof OpenRule));
+
+    return { board, puzzle, hints };
+  }
+}
+
+function makeHintViews(
+  hints: Hint[],
+  hintViewVisibility: VisibilityObservable,
+  hintsVContainer: HTMLElement,
+  hintsHContainer: HTMLElement,
+): Map<Hint, HTMLElement> {
+  const hintToElement = new Map<Hint, HTMLElement>();
+  for (const hint of hints) {
+    if (hint.rule instanceof OpenRule) continue;
+
+    if (hint.rule instanceof UnderRule) {
+      const el = createVerticalHintElement(hint, hintViewVisibility);
+      hintsVContainer.appendChild(el);
+      hintToElement.set(hint, el);
+    } else if (hint.rule instanceof NearRule || hint.rule instanceof DirectionRule || hint.rule instanceof BetweenRule) {
+      const el = createHorizontalHintElement(hint, hintViewVisibility);
+      hintsHContainer.appendChild(el);
+      hintToElement.set(hint, el);
+    }
+  }
+  return hintToElement;
+}
