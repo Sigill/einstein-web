@@ -3,12 +3,11 @@ import { ALL_TYPES, CardType } from '../engine/Card.js';
 import { SquareView } from './SquareView.js';
 
 export class BoardView {
-  public element: HTMLElement;
+  public element: DocumentFragment;
   private squares: SquareView[] = [];
 
   constructor(private board: Board) {
-    this.element = document.createElement('div');
-    this.element.className = 'board-grid';
+    this.element = document.createDocumentFragment();
 
     for (const type of ALL_TYPES) {
       const row = this.board.squares[type];

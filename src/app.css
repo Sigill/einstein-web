@@ -1,3 +1,5 @@
+@import "../node_modules/normalize.css/normalize.css";
+
 :root {
   --bg-color: #121212;
   --text-color: #ffffff;
@@ -6,13 +8,39 @@
   --card-bg-resolved: #404040;
   --border-color: #4a4a4a;
 
+  /* This is the padding around the whole game. */
+  --fullscreen-container-padding: 10px;
+
+  /* This is the padding around the board, the buttons and the hints. */
+  --fullscreen-container-item-padding: 10px;
+
   /*
-   * --cell-size drives almost every dimension in the layout.
-   * It is clamped between 50 px and 100 px and scales with the smaller of
-   * 6 % viewport-width or 9 % viewport-height so the whole board remains
-   * visible without scrolling on most screens.
+   * The board width is 2 * padding + 6 * cell-size + 5 * card-gap.
+   * The horizontal hints width is 2 * padding + 3 * cell-size + 2 * h-hint-h-gap.
+   * The vertical hints width is 2 * padding + 15 * cell-size + 14 * card-gap.
+   * The board, the horizontal hints and the vertical hints have all the same padding.
+   *
+   * The board + horizontal hints therefore have 4 item-padding
+   * Horizontally, that's a total of 15 cells in both cases.
+   * So 5 card-gap + 2 horizontal hint horizontal gaps must equal 14 card gaps.
+   * (2 * padding + 6 * cell-size + 5 * card-gap) + (2 * padding + 9 * cell-size + 2 * h-hint-h-gap) = 2 * padding + 15 * cell-size + 14 * card-gap
+   * 4 * padding + 5 * card-gap + 2 * h-hint-h-gap = 2 * padding + 14 * card-gap
+   * 9 * card-gap - 2 * padding = 2 * h-hint-h-gap
    */
-  --cell-size: clamp(50px, min(6svw, 8.5svh), 100px);
+
+  --card-gap: 4px;
+  --h-hint-h-gap: 8px;
+
+  /* Those shall to be equal */
+  --usable-width-board-and-h-hints: calc(100svw - 2 * var(--fullscreen-container-padding) - 4 * var(--fullscreen-container-item-padding) - 5 * var(--card-gap) - 2 * var(--h-hint-h-gap));
+  --usable-width-v-hints: calc(100svw - 2 * var(--fullscreen-container-padding) - 2 * var(--fullscreen-container-item-padding) - 14 * var(--card-gap));
+
+  --usable-height-v-and-h-hints: calc(100svh - 2 * var(--fullscreen-container-padding) - 4 * var(--fullscreen-container-item-padding) - 7 * var(--card-gap));
+
+  --usable-width-per-cell: calc(var(--usable-width-v-hints) / 15);
+  --usable-height-v-and-h-hints-per-cell: calc(var(--usable-height-v-and-h-hints) / 10);
+
+  --cell-size: clamp(50px, min(var(--usable-width-per-cell), var(--usable-height-v-and-h-hints-per-cell)), 100px);
   --mini-size: calc(var(--cell-size) / 3.3);
 
   --color-A: #ff7b7b;
@@ -37,45 +65,60 @@
   font-variation-settings: "wdth" 100;
 }
 
+html,
 body {
-  margin: 0;
-  padding: 10px;
+  height: 100%;
+}
+
+body {
+  display: grid;
+  place-items: center;
+
+  overflow: auto;
   background-color: var(--bg-color);
   color: var(--text-color);
+  box-sizing: border-box;
+}
+
+.fullscreen-container {
+  box-sizing: border-box;
+
+  padding: var(--fullscreen-container-padding);
+
   display: grid;
+  /* Centers the entire grid horizontally */
+  justify-content: center;
+  /* Centers the entire grid vertically */
+  align-content: start;
+  /* Align the grid items to the top */
+  align-items: start;
+
   grid-template-areas:
-    "board hints-h"
+    "board   hints-h"
     "buttons hints-h"
     "hints-v hints-v";
   grid-template-columns: min-content min-content;
-  grid-template-rows: min-content min-content min-content;
-  height: min-content;
-  min-height: 100svh;
-  justify-content: center;
-  align-content: center;
-  box-sizing: border-box;
-  /* Allow scrollbars when the content overflows (e.g. very small viewports) */
-  overflow: auto;
+  grid-template-rows: min-content 1fr min-content;
 }
 
 /* Board */
 #board-container {
   grid-area: board;
-  background: #1e1e1e;
-  padding: 10px;
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-  justify-self: start;
-  align-self: start;
-  width: fit-content;
-  height: fit-content;
-}
 
-.board-grid {
   display: grid;
   grid-template-columns: repeat(6, var(--cell-size));
   grid-template-rows: repeat(6, var(--cell-size));
-  gap: 4px;
+  gap: var(--card-gap);
+
+  box-sizing: border-box;
+
+  width: fit-content;
+  height: fit-content;
+
+  background: #1e1e1e;
+  padding: var(--fullscreen-container-item-padding);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
 }
 
 .square-cell {
@@ -189,15 +232,18 @@ body {
 /* Buttons */
 #buttons-container {
   grid-area: buttons;
+
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  /* Match the board width: 6 cells + 5 gaps (4 px each) + 2×board-padding (10 px each) */
-  width: calc(6 * var(--cell-size) + 5 * 4px + 2 * 10px);
-  padding: 10px;
+  gap: 4px;
+
+  border-radius: 12px;
+  /* Match the board width: 6 cells + 5 gaps + 2 board-padding */
+  width: calc(6 * var(--cell-size) + 5 * var(--card-gap) + 2 * var(--fullscreen-container-item-padding));
+  padding: var(--fullscreen-container-item-padding);
   box-sizing: border-box;
   justify-self: start;
-  align-self: start;
+  align-self: center;
 }
 
 button {
@@ -206,7 +252,7 @@ button {
   border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 5px 0;
-  font-size: calc(var(--cell-size) * 0.25);
+  font-size: calc(var(--cell-size) * 0.2);
   cursor: pointer;
   transition: background 0.2s;
 }
@@ -221,7 +267,7 @@ button:hover {
   border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 5px 0;
-  font-size: calc(var(--cell-size) * 0.25);
+  font-size: calc(var(--cell-size) * 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -233,25 +279,26 @@ button:hover {
 /* Hints */
 #hints-v-container {
   grid-area: hints-v;
+
   display: grid;
   grid-template-columns: repeat(15, var(--cell-size));
-  gap: 4px;
-  padding: 10px;
-  align-content: start;
+  gap: var(--card-gap);
+
+  border-radius: 12px;
+  padding: var(--fullscreen-container-item-padding);
   box-sizing: border-box;
-  justify-self: start;
 }
 
 #hints-h-container {
   grid-area: hints-h;
+
   display: grid;
   grid-template-rows: repeat(8, var(--cell-size));
-  gap: 4px;
-  padding: 10px;
-  align-content: start;
+  gap: var(--card-gap) var(--h-hint-h-gap);
+
+  border-radius: 12px;
+  padding: var(--fullscreen-container-item-padding);
   grid-auto-flow: column;
-  justify-self: end;
-  align-self: start;
 }
 
 .hint {
