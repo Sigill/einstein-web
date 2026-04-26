@@ -5,13 +5,14 @@
   --card-bg-hover: #3d3d3d;
   --card-bg-resolved: #404040;
   --border-color: #4a4a4a;
+
   /*
    * --cell-size drives almost every dimension in the layout.
    * It is clamped between 50 px and 100 px and scales with the smaller of
    * 6 % viewport-width or 9 % viewport-height so the whole board remains
    * visible without scrolling on most screens.
    */
-  --cell-size: clamp(50px, min(6vw, 9vh), 100px);
+  --cell-size: clamp(50px, min(6svw, 8.5svh), 100px);
   --mini-size: calc(var(--cell-size) / 3.3);
 
   --color-A: #ff7b7b;
@@ -38,7 +39,7 @@
 
 body {
   margin: 0;
-  padding: 20px;
+  padding: 10px;
   background-color: var(--bg-color);
   color: var(--text-color);
   display: grid;
@@ -49,7 +50,7 @@ body {
   grid-template-columns: min-content min-content;
   grid-template-rows: min-content min-content min-content;
   height: min-content;
-  min-height: 100vh;
+  min-height: 100svh;
   justify-content: center;
   align-content: center;
   box-sizing: border-box;
@@ -338,8 +339,8 @@ button:hover {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
+  width: 100svw;
+  height: 100svh;
   background-color: rgba(0, 0, 0, 0.85);
   /* eslint-disable-next-line css/use-baseline */
   backdrop-filter: blur(8px);
