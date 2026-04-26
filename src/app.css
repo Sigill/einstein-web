@@ -311,6 +311,10 @@ button:hover {
   justify-content: center;
   gap: 4px;
   box-sizing: border-box;
+
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  /* When highlighted on tap, we can see cards overflowing on the top. */
+  overflow: hidden;
 }
 
 .hint:empty {
