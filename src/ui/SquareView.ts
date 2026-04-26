@@ -2,6 +2,7 @@ import { Square } from '../engine/Square.js';
 import { Board } from '../engine/Board.js';
 import { ALL_VALUES } from '../engine/Card.js';
 import { createCardElement } from './CardView.js';
+import { ActionMenu } from './ActionMenu.js';
 
 export class SquareView {
   public element: HTMLElement;
@@ -62,14 +63,41 @@ export class SquareView {
           miniCardContainer.appendChild(cardEl);
 
           miniCardContainer.addEventListener('click', (e) => {
-            if (e.button === 0) { // left click
+            // Fallback for pointerType if browser doesn't support it well in click events
+            const isTouch = e.pointerType === 'touch' || (window.matchMedia('(pointer: coarse)').matches && e.pointerType !== 'mouse');
+
+            if (isTouch) {
+              e.preventDefault();
+              // Open action menu for touch
+              const menu = new ActionMenu(
+                { type: this.square.type, value: val },
+                [
+                  {
+                    label: 'Validate',
+                    className: 'validate',
+                    callback: () => this.board.set(this.square, val),
+                  },
+                  {
+                    label: 'Blacklist',
+                    className: 'blacklist',
+                    callback: () => this.board.exclude(this.square, val),
+                  },
+                ],
+                () => { },
+              );
+              menu.show();
+            } else if (e.button === 0) { // left click (mouse)
               this.board.set(this.square, val);
             }
           });
 
           miniCardContainer.addEventListener('contextmenu', (e) => {
-            e.preventDefault(); // prevent native menu
-            this.board.exclude(this.square, val);
+            if (e.pointerType === 'mouse' || e.pointerType === '') {
+              e.preventDefault(); // prevent native menu
+              this.board.exclude(this.square, val);
+            } else {
+              e.preventDefault();
+            }
           });
         }
 
