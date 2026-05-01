@@ -521,9 +521,58 @@ button:hover {
   margin-top: 8px;
 }
 
-@media (max-width: 850px) {
+
+@media (max-width: 860px) and (orientation: landscape) {
   :root {
-    --usable-width-board: calc(100svw - 2 * var(--fullscreen-container-padding) - 2 * var(--fullscreen-container-item-padding) - 5 * var(--card-gap));
+    --usable-width-board-and-h-hints: calc(100svw - 2 * var(--fullscreen-container-padding) - 4 * var(--fullscreen-container-item-padding) - 5 * var(--card-gap) - 2 * var(--h-hint-h-gap));
+    --usable-width-v-hints: calc(100svw - 2 * var(--fullscreen-container-padding) - 2 * var(--fullscreen-container-item-padding) - 14 * var(--card-gap));
+
+    --usable-height-v-and-h-hints: calc(100svh - 2 * var(--fullscreen-container-padding) - 4 * var(--fullscreen-container-item-padding) - 7 * var(--card-gap));
+
+    --usable-width-per-cell: calc(var(--usable-width-v-hints) / 12);
+
+    --cell-size: clamp(35px, var(--usable-width-per-cell), 100px);
+
+    /* --usable-width-board: calc(100dvh - 2 * var(--fullscreen-container-padding) - 2 * var(--fullscreen-container-item-padding) - 5 * var(--card-gap));
+    --usable-width-per-cell: calc(var(--usable-width-board) / 6);
+    --cell-size: clamp(35px, var(--usable-width-per-cell), 80px); */
+  }
+
+  .fullscreen-container {
+    grid-template-areas:
+      "board buttons"
+      "board hints-v"
+      "board hints-h";
+    grid-template-columns: auto auto;
+    grid-template-rows: auto auto auto;
+    width: 100svw;
+    justify-items: center;
+  }
+
+  #buttons-container {
+    align-self: start;
+
+    /* Match the board width: 4 cells + 5 gaps + 2 board-padding */
+    width: calc(6 * var(--cell-size) + var(--h-hint-h-gap) + 2 * var(--fullscreen-container-item-padding));
+  }
+
+  #hints-h-container {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(2, calc(3 * var(--cell-size)));
+  }
+
+  #hints-v-container {
+    grid-template-columns: repeat(6, var(--cell-size));
+  }
+
+  .hint:empty {
+    display: none;
+  }
+}
+
+@media (max-width: 560px) or (orientation: portrait) {
+  :root {
+    --usable-width-board: calc(100dvh - 2 * var(--fullscreen-container-padding) - 2 * var(--fullscreen-container-item-padding) - 5 * var(--card-gap));
     --usable-width-per-cell: calc(var(--usable-width-board) / 6);
     --cell-size: clamp(35px, var(--usable-width-per-cell), 80px);
   }
