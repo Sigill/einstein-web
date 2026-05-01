@@ -595,57 +595,77 @@ button:hover {
   }
 }
 
-@media (max-width: 560px) or (orientation: portrait) {
+@media (max-width: 560px) and (max-aspect-ratio: 7/10) {
   :root {
-    --usable-width-board: calc(100dvh - 2 * var(--fullscreen-container-padding) - 2 * var(--fullscreen-container-item-padding) - 5 * var(--card-gap));
-    --usable-width-per-cell: calc(var(--usable-width-board) / 6);
-    --cell-size: clamp(35px, var(--usable-width-per-cell), 80px);
+    --fullscreen-container-padding: 5px;
+
+    --usable-width: calc(100lvw - 2 * var(--fullscreen-container-padding) - 2 * var(--fullscreen-container-item-padding) - 5 * var(--card-gap));
+
+    --usable-width-per-cell: calc(var(--usable-width) / 6);
+
+    --cell-size: max(35px, var(--usable-width-per-cell));
   }
 
+  /* body {
+    overflow: hidden;
+  } */
+
   .fullscreen-container {
+    width: 100lvw;
+    height: 100lvh;
     grid-template-areas:
       "board"
-      "buttons"
-      "hints-v"
-      "hints-h";
-    grid-template-columns: 1fr;
-    grid-template-rows: auto auto auto auto;
-    width: 100svw;
+      "side-panel";
+    grid-template-columns: 100%;
+    grid-template-rows: min-content 1fr;
+    justify-content: center;
     padding: var(--fullscreen-container-padding);
-    justify-items: center;
-    overflow: auto;
-    /* Ensure scrolling is allowed here */
+    gap: var(--card-gap);
+    overflow: hidden;
   }
 
   #board-container {
-    width: 100%;
-    max-width: calc(6 * var(--cell-size) + 5 * var(--card-gap) + 2 * var(--fullscreen-container-item-padding));
+    grid-area: board;
+    align-self: start;
+    justify-self: center;
+    margin: 0;
   }
 
-  .hint:empty {
-    display: none;
+  .side-panel {
+    grid-area: side-panel;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+    height: 100%;
+    width: 100%;
+    min-height: 0;
+    align-items: center;
+    box-sizing: border-box;
+    padding: 0 0 var(--fullscreen-container-padding) 0;
+    gap: var(--card-gap);
+  }
+
+  #buttons-container {
+    padding: 0;
+    justify-self: center;
+  }
+
+  #hints-h-container {
+    grid-auto-flow: row;
+    grid-template-rows: unset;
+    grid-template-columns: repeat(2, calc(3 * var(--cell-size)));
+    padding: 0;
   }
 
   #hints-v-container {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    width: 100%;
-    grid-template-columns: none;
+    padding: 0;
   }
 
-  #hints-h-container {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    width: 100%;
-    grid-template-columns: none;
-    grid-template-rows: none;
-  }
-
-  #buttons-container {
-    width: 100%;
-    max-width: calc(6 * var(--cell-size) + 5 * var(--card-gap) + 2 * var(--fullscreen-container-item-padding));
-    justify-self: center;
+  .hint:empty {
+    display: none;
   }
 }
