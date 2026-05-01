@@ -431,8 +431,8 @@ button:hover {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100svw;
-  height: 100svh;
+  width: 100lvw;
+  height: 100lvh;
   background-color: rgba(0, 0, 0, 0);
   /* eslint-disable-next-line css/use-baseline */
   backdrop-filter: blur(0px);
