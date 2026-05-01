@@ -157,6 +157,7 @@ body {
   justify-content: center;
   cursor: pointer;
   border-radius: 2px;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
 
 .mini-card-container:not(:has(.card)) {
