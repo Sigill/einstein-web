@@ -394,8 +394,8 @@ button:hover {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100svw;
-  height: 100svh;
+  width: 100lvw;
+  height: 100lvh;
   background-color: rgba(0, 0, 0, 0.85);
   /* eslint-disable-next-line css/use-baseline */
   backdrop-filter: blur(8px);
@@ -528,33 +528,34 @@ button:hover {
 
 @media (max-width: 860px) and (orientation: landscape) {
   :root {
-    --usable-width-board-and-h-hints: calc(100lvw - 2 * var(--fullscreen-container-padding) - 4 * var(--fullscreen-container-item-padding) - 5 * var(--card-gap) - 2 * var(--h-hint-h-gap));
-    --usable-width-v-hints: calc(100lvw - 2 * var(--fullscreen-container-padding) - 2 * var(--fullscreen-container-item-padding) - 14 * var(--card-gap));
-
     --usable-height: calc(100lvh - 2 * var(--fullscreen-container-padding) - 2 * var(--fullscreen-container-item-padding) - 5 * var(--card-gap));
 
-    --usable-width-per-cell: min(calc(var(--usable-width-v-hints)) / 12, calc(var(--usable-height) / 6));
+    --usable-width-board-and-buttons: calc(100lvw - 2 * var(--fullscreen-container-padding)
+        /* board */
+        - 2 * var(--fullscreen-container-padding) - 2 * var(--fullscreen-container-item-padding) - 5 * var(--card-gap)
+        /* gap */
+        /* - var(--fullscreen-container-item-padding) */
+        /* buttons are considered as wide as 6 cells */
+        - 5 * var(--card-gap) - 2 * var(--fullscreen-container-item-padding));
 
-    --cell-size: clamp(35px, var(--usable-width-per-cell), 100px);
+    --usable-width-per-cell: min(calc(var(--usable-width-board-and-buttons)) / 12, calc(var(--usable-height) / 6));
 
-    /* --usable-width-board: calc(100dvh - 2 * var(--fullscreen-container-padding) - 2 * var(--fullscreen-container-item-padding) - 5 * var(--card-gap));
-    --usable-width-per-cell: calc(var(--usable-width-board) / 6);
-    --cell-size: clamp(35px, var(--usable-width-per-cell), 80px); */
+    --cell-size: max(35px, var(--usable-width-per-cell));
   }
 
   .fullscreen-container {
+    width: 100lvw;
     grid-template-areas: "board side-panel";
     grid-template-columns: auto auto;
     grid-template-rows: 100lvh;
-    width: 100lvw;
-    justify-content: center;
-    align-items: start;
+    justify-content: space-evenly;
     padding: 0 var(--fullscreen-container-padding);
     gap: var(--fullscreen-container-item-padding);
   }
 
   #board-container {
     align-self: center;
+    margin: var(--fullscreen-container-item-padding) 0;
   }
 
   .side-panel {
@@ -572,11 +573,6 @@ button:hover {
   }
 
   #buttons-container {
-    align-self: start;
-
-    /* Match the board width: 6 cells + 5 gaps + 2 board-padding */
-    width: calc(6 * var(--cell-size) + 5 * var(--card-gap) + 2 * var(--fullscreen-container-item-padding));
-    padding-top: 0;
     padding: 0;
   }
 
@@ -584,13 +580,13 @@ button:hover {
     grid-auto-flow: row;
     grid-template-rows: unset;
     grid-template-columns: repeat(2, calc(3 * var(--cell-size)));
-    padding-top: 0;
     padding: 0;
   }
 
   #hints-v-container {
-    grid-template-columns: repeat(5, var(--cell-size));
-    padding-top: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     padding: 0;
   }
 
