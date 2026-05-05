@@ -8,12 +8,10 @@ interface LoseScreenProps {
 
 export function createLoseScreen(props: LoseScreenProps): Screen {
   const element = (
-    <div className="pause-screen">
-      <div className="pause-content">
-        <h1 style="color: #ff7b7b;">Defeat</h1>
-        <p>You made an impossible move.</p>
-        <p style="margin-top: 30px;">Click anywhere to try again</p>
-      </div>
+    <div className="screen-container">
+      <h1 style="color: #ff7b7b;">Defeat</h1>
+      <p>You made an impossible move.</p>
+      <p style="margin-top: 30px;">Click anywhere to try again</p>
     </div>
   ) as HTMLElement;
 
