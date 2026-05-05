@@ -71,18 +71,8 @@ export class SquareView {
               // Open action menu for touch
               const menu = new ActionMenu(
                 { type: this.square.type, value: val },
-                [
-                  {
-                    label: 'Validate',
-                    className: 'validate',
-                    callback: () => this.board.set(this.square, val),
-                  },
-                  {
-                    label: 'Blacklist',
-                    className: 'blacklist',
-                    callback: () => this.board.exclude(this.square, val),
-                  },
-                ],
+                () => this.board.set(this.square, val),
+                () => this.board.exclude(this.square, val),
                 () => { },
               );
               menu.show();

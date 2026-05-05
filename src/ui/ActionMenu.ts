@@ -1,18 +1,19 @@
 import { CardValue, CardType } from '../engine/Card.js';
 import { createCardElement } from './CardView.js';
 
-export interface Action {
-  label: string;
-  className: string;
-  callback: () => void;
-}
+const ICONS = {
+  VALIDATE: '<svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>',
+  EXCLUDE: '<svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>',
+  CANCEL: '<svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>'
+};
 
 export class ActionMenu {
   private element: HTMLElement;
 
   constructor(
     private card: { type: CardType, value: CardValue },
-    private actions: Action[],
+    private onValidate: () => void,
+    private onExclude: () => void,
     private onCancel: () => void
   ) {
     this.element = document.createElement('div');
@@ -27,40 +28,48 @@ export class ActionMenu {
     const content = document.createElement('div');
     content.className = 'action-menu-content';
 
-    const header = document.createElement('div');
-    header.className = 'action-menu-header';
-    header.textContent = 'Choose action';
-    content.appendChild(header);
-
     const cardPreviewContainer = document.createElement('div');
     cardPreviewContainer.className = 'action-menu-preview-container';
     const cardPreview = createCardElement(this.card);
-    cardPreview.classList.add('large', 'action-menu-preview');
+    cardPreview.classList.add('extra-large', 'action-menu-preview');
     cardPreviewContainer.appendChild(cardPreview);
     content.appendChild(cardPreviewContainer);
 
     const buttonsContainer = document.createElement('div');
     buttonsContainer.className = 'action-menu-buttons';
 
-    for (const action of this.actions) {
-      const btn = document.createElement('button');
-      btn.className = `action-menu-btn ${action.className}`;
-      btn.textContent = action.label;
-      btn.addEventListener('click', () => {
-        action.callback();
-        this.close();
-      });
-      buttonsContainer.appendChild(btn);
-    }
-
+    // Cancel button
     const cancelBtn = document.createElement('button');
     cancelBtn.className = 'action-menu-btn cancel';
-    cancelBtn.textContent = 'Cancel';
+    cancelBtn.innerHTML = ICONS.CANCEL;
+    cancelBtn.title = 'Cancel';
     cancelBtn.addEventListener('click', () => {
       this.onCancel();
       this.close();
     });
     buttonsContainer.appendChild(cancelBtn);
+
+    // Exclude button
+    const excludeBtn = document.createElement('button');
+    excludeBtn.className = 'action-menu-btn blacklist';
+    excludeBtn.innerHTML = ICONS.EXCLUDE;
+    excludeBtn.title = 'Exclude';
+    excludeBtn.addEventListener('click', () => {
+      this.onExclude();
+      this.close();
+    });
+    buttonsContainer.appendChild(excludeBtn);
+
+    // Validate button
+    const validateBtn = document.createElement('button');
+    validateBtn.className = 'action-menu-btn validate';
+    validateBtn.innerHTML = ICONS.VALIDATE;
+    validateBtn.title = 'Validate';
+    validateBtn.addEventListener('click', () => {
+      this.onValidate();
+      this.close();
+    });
+    buttonsContainer.appendChild(validateBtn);
 
     content.appendChild(buttonsContainer);
     this.element.appendChild(content);
