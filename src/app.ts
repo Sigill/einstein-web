@@ -14,11 +14,20 @@ import { createWinScreen } from './ui/screens/WinScreen.js';
 import { createLoseScreen } from './ui/screens/LoseScreen.js';
 import { Timer } from './ui/Timer.js';
 
-const { board, puzzle, hints } = generate();
+let board: Board;
+let puzzle: SolvedPuzzle;
+let hints: Hint[];
+let boardView: BoardView;
+let hintToElement: Map<Hint, HTMLElement>;
+let finished = false;
 
 const screenManager = new ScreenManager(document.getElementById('screen-overlay')!);
-
 const timer = new Timer(document.getElementById('timer-container')!);
+const hintViewVisibility = new VisibilityObservable();
+
+const boardContainer = document.getElementById('board-container')!;
+const hintsVContainer = document.getElementById('hints-v-container')!;
+const hintsHContainer = document.getElementById('hints-h-container')!;
 
 screenManager.onToggle((active) => {
   if (active) {
@@ -28,10 +37,8 @@ screenManager.onToggle((active) => {
   }
 });
 
-timer.start();
-
 document.getElementById('btn-new-game')!.addEventListener('click', () => {
-  window.location.reload();
+  startGame();
 });
 
 const pauseGame = () => {
@@ -46,21 +53,67 @@ document.addEventListener('visibilitychange', () => {
   }
 });
 
-const boardView = new BoardView(board);
-document.getElementById('board-container')!.appendChild(boardView.element);
-
-const hintsVContainer = document.getElementById('hints-v-container')!;
-const hintsHContainer = document.getElementById('hints-h-container')!;
-
-// Global observable to control if the hint view should be displayed
-const hintViewVisibility = new VisibilityObservable();
-
-const hintToElement = makeHintViews(hints, hintViewVisibility, hintsVContainer, hintsHContainer);
-
 // Toggle hints button toggles the visibility state of the entire hint view
 document.getElementById('btn-toggle-hints')!.addEventListener('click', () => {
   hintViewVisibility.toggle();
 });
+
+function startGame(debugData?: Parameters<typeof generate>[0]) {
+  finished = false;
+  timer.reset();
+
+  // Clear existing views
+  boardContainer.replaceChildren();
+  hintsVContainer.replaceChildren();
+  hintsHContainer.replaceChildren();
+
+  const generated = generate(debugData);
+  board = generated.board;
+  puzzle = generated.puzzle;
+  hints = generated.hints;
+
+  boardView = new BoardView(board);
+  boardContainer.appendChild(boardView.element);
+
+  hintToElement = makeHintViews(hints, hintViewVisibility, hintsVContainer, hintsHContainer);
+
+  board.addEventListener('change', () => {
+    if (finished) return;
+
+    if (!board.isValid(puzzle)) {
+      finished = true;
+      timer.stop();
+      screenManager.push(createLoseScreen({
+        onRestart: () => startGame(),
+      }));
+    } else if (board.isSolved()) {
+      finished = true;
+      timer.stop();
+      const timeMs = timer.getElapsedTime();
+      const bestTimeMs = timer.getBestTime();
+      const isBest = timer.saveBestTime();
+      screenManager.push(createWinScreen({
+        timeMs,
+        isBest,
+        bestTimeMs,
+        onRestart: () => startGame(),
+      }));
+    }
+
+    logGameState();
+  });
+
+  for (const hint of hints) {
+    hint.visibility.addEventListener('visibilityChanged', () => {
+      logGameState();
+    });
+  }
+
+  timer.start();
+  logGameState();
+}
+
+startGame();
 
 document.getElementById('btn-reveal-hint')!.addEventListener('click', () => {
   const hint = findFirstApplicableHint(board.toJSON(), hints);
@@ -90,10 +143,8 @@ document.getElementById('btn-reveal-card')!.addEventListener('click', () => {
   }
 });
 
-let finished = false;
-
 let logTimeout: number | undefined;
-const logGameState = () => {
+function logGameState() {
   if (finished) return;
   if (logTimeout !== undefined) return;
   logTimeout = window.setTimeout(() => {
@@ -111,38 +162,6 @@ const logGameState = () => {
     };
     console.log(data);
   }, 0);
-};
-
-board.addEventListener('change', () => {
-  if (finished) return;
-
-  if (!board.isValid(puzzle)) {
-    finished = true;
-    timer.stop();
-    screenManager.push(createLoseScreen({
-      onRestart: () => window.location.reload(),
-    }));
-  } else if (board.isSolved()) {
-    finished = true;
-    timer.stop();
-    const timeMs = timer.getElapsedTime();
-    const bestTimeMs = timer.getBestTime();
-    const isBest = timer.saveBestTime();
-    screenManager.push(createWinScreen({
-      timeMs,
-      isBest,
-      bestTimeMs,
-      onRestart: () => window.location.reload(),
-    }));
-  }
-
-  logGameState();
-});
-
-for (const hint of hints) {
-  hint.visibility.addEventListener('visibilityChanged', () => {
-    logGameState();
-  });
 }
 
 function generate(debugData?: {
