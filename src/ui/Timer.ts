@@ -53,17 +53,23 @@ export class Timer {
     this.displayElement.textContent = Timer.formatTime(this.elapsedTime);
   }
 
-  public saveBestTime(): boolean {
-    const currentBest = localStorage.getItem('einstein-best-time');
+  public saveBestTime(withAssistance: boolean): boolean {
+    const key = localstorageKey(withAssistance);
+    const currentBest = localStorage.getItem(key);
     if (!currentBest || this.elapsedTime < parseInt(currentBest, 10)) {
-      localStorage.setItem('einstein-best-time', this.elapsedTime.toString());
+      localStorage.setItem(key, this.elapsedTime.toString());
       return true;
     }
     return false;
   }
 
-  public getBestTime(): number | null {
-    const best = localStorage.getItem('einstein-best-time');
+  public getBestTime(withAssistance: boolean): number | null {
+    const key = localstorageKey(withAssistance);
+    const best = localStorage.getItem(key);
     return best ? parseInt(best, 10) : null;
   }
+}
+
+function localstorageKey(withAssistance: boolean) {
+  return withAssistance ? 'einstein-best-time-assisted' : 'einstein-best-time';
 }

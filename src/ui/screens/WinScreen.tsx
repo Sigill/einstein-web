@@ -7,13 +7,15 @@ interface WinScreenProps {
   timeMs: number;
   isBest: boolean;
   bestTimeMs: number | null;
+  hasUsedAssistance: boolean;
   onRestart: () => void;
 }
 
 export function createWinScreen(props: WinScreenProps): Screen {
   const element = (
     <div className="screen-container">
-      <h1 style="color: #7bff7b;">Victory!</h1>
+      <h1 style="color: #7bff7b;">{props.hasUsedAssistance ? 'Puzzle Solved!' : 'Victory!'}</h1>
+      {props.hasUsedAssistance && <p style="font-size: 1.2rem; margin: 0; color: #ffeb3b; opacity: 0.8;">(with assistance)</p>}
       <p style="font-size: 2rem; margin: 10px 0;">{Timer.formatTime(props.timeMs)}</p>
       {props.isBest
         ? (

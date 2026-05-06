@@ -20,6 +20,7 @@ let hints: Hint[];
 let boardView: BoardView;
 let hintToElement: Map<Hint, HTMLElement>;
 let finished = false;
+let hasUsedAssistance = false;
 
 const screenManager = new ScreenManager(document.getElementById('screen-overlay')!);
 const timer = new Timer(document.getElementById('timer-container')!);
@@ -60,6 +61,7 @@ document.getElementById('btn-toggle-hints')!.addEventListener('click', () => {
 
 function startGame(debugData?: Parameters<typeof generate>[0]) {
   finished = false;
+  hasUsedAssistance = false;
   timer.reset();
 
   // Clear existing views
@@ -90,12 +92,13 @@ function startGame(debugData?: Parameters<typeof generate>[0]) {
       finished = true;
       timer.stop();
       const timeMs = timer.getElapsedTime();
-      const bestTimeMs = timer.getBestTime();
-      const isBest = timer.saveBestTime();
+      const bestTimeMs = timer.getBestTime(hasUsedAssistance);
+      const isBest = timer.saveBestTime(hasUsedAssistance);
       screenManager.push(createWinScreen({
         timeMs,
         isBest,
         bestTimeMs,
+        hasUsedAssistance,
         onRestart: () => startGame(),
       }));
     }
@@ -116,6 +119,7 @@ function startGame(debugData?: Parameters<typeof generate>[0]) {
 startGame();
 
 document.getElementById('btn-reveal-hint')!.addEventListener('click', () => {
+  hasUsedAssistance = true;
   const hint = findFirstApplicableHint(board.toJSON(), hints);
   if (hint) {
     blinkHint(hint, hintToElement);
@@ -125,6 +129,7 @@ document.getElementById('btn-reveal-hint')!.addEventListener('click', () => {
 });
 
 document.getElementById('btn-reveal-card')!.addEventListener('click', () => {
+  hasUsedAssistance = true;
   const oldState = board.toJSON();
   const hint = findFirstApplicableHint(oldState, hints);
   if (hint) {
