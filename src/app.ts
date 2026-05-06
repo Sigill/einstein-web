@@ -48,7 +48,7 @@ const pauseGame = () => {
 document.getElementById('btn-pause')!.addEventListener('click', pauseGame);
 
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden) {
+  if (document.hidden && !finished) {
     pauseGame();
   }
 });
