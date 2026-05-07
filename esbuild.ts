@@ -46,7 +46,10 @@ program.action(async ({ watch, serve, liveReload }: { watch: boolean; serve: boo
       copy({
         assets: [
           {
-            from: [path.join(root, 'node_modules', '@fontsource', 'open-sans', '**', '*400*')],
+            from: [
+              'open-sans-latin-400-normal.woff2',
+              'open-sans-math-400-normal.woff2',
+            ].map(f => path.join(root, 'node_modules', '@fontsource', 'open-sans', 'files', f)),
             to: path.join(distDir, 'www', 'assets', 'fonts', 'open-sans'),
           },
         ],

@@ -15,7 +15,7 @@
   "devDependencies": {
     "@eslint/css": "^1.1.0",
     "@eslint/js": "^10.0.1",
-    "@fontsource/open-sans": "^5.2.7",
+    "@fontsource/open-sans": "5.2.7",
     "@stylistic/eslint-plugin": "^5.4.0",
     "@types/app-root-dir": "^0.1.4",
     "@types/eslint__js": "^8.42.3",
