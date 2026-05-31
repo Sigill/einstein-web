@@ -22,13 +22,14 @@ let hintToElement: Map<Hint, HTMLElement>;
 let finished = false;
 let hasUsedAssistance = false;
 
-const screenManager = new ScreenManager(document.getElementById('screen-overlay')!);
-const timer = new Timer(document.getElementById('timer-container')!);
-const hintViewVisibility = new VisibilityObservable();
-
+const timerElement = document.getElementById('timer-container')!;
 const boardContainer = document.getElementById('board-container')!;
 const hintsVContainer = document.getElementById('hints-v-container')!;
 const hintsHContainer = document.getElementById('hints-h-container')!;
+
+const screenManager = new ScreenManager(document.getElementById('screen-overlay')!);
+const timer = new Timer(timerElement);
+const hintViewVisibility = new VisibilityObservable();
 
 screenManager.onToggle((active) => {
   if (active) {
@@ -63,6 +64,7 @@ function startGame(debugData?: Parameters<typeof generate>[0]) {
   finished = false;
   hasUsedAssistance = false;
   timer.reset();
+  timerElement.classList.remove('assisted');
 
   // Clear existing views
   boardContainer.replaceChildren();
@@ -120,6 +122,7 @@ startGame();
 
 document.getElementById('btn-reveal-hint')!.addEventListener('click', () => {
   hasUsedAssistance = true;
+  timerElement.classList.add('assisted');
   const hint = findFirstApplicableHint(board.toJSON(), hints);
   if (hint) {
     blinkHint(hint, hintToElement);
@@ -130,6 +133,7 @@ document.getElementById('btn-reveal-hint')!.addEventListener('click', () => {
 
 document.getElementById('btn-reveal-card')!.addEventListener('click', () => {
   hasUsedAssistance = true;
+  timerElement.classList.add('assisted');
   const oldState = board.toJSON();
   const hint = findFirstApplicableHint(oldState, hints);
   if (hint) {
