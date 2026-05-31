@@ -494,6 +494,50 @@ button:hover {
   border: 1px solid #333;
 }
 
+.action-menu-square-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 12px;
+  padding: 12px;
+  background: #222;
+  border-radius: 14px;
+  border: 1px solid var(--border-color);
+  box-sizing: border-box;
+}
+
+.action-menu-mini-card-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-color: #2b2b2b;
+  width: calc(var(--cell-size) * 0.9);
+  height: calc(var(--cell-size) * 0.9);
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+
+.action-menu-mini-card-container:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.action-menu-mini-card-container.selected {
+  border-color: #ff9800;
+  background-color: rgba(255, 152, 0, 0.15);
+  box-shadow: 0 0 10px rgba(255, 152, 0, 0.3);
+  transform: scale(1.05);
+}
+
+.action-menu-mini-card-container:not(:has(.card)) {
+  cursor: default;
+  background-color: transparent;
+  border-color: transparent;
+}
+
 .action-menu-buttons {
   display: flex;
   flex-direction: row;

@@ -1,4 +1,5 @@
-import { CardValue, CardType } from '../engine/Card.js';
+import { CardValue, ALL_VALUES } from '../engine/Card.js';
+import { Square } from '../engine/Square.js';
 import { createCardElement } from './CardView.js';
 
 const ICONS = {
@@ -9,11 +10,13 @@ const ICONS = {
 
 export class ActionMenu {
   private element: HTMLElement;
+  private miniCardContainers: HTMLElement[] = [];
 
   constructor(
-    private card: { type: CardType, value: CardValue },
-    private onValidate: () => void,
-    private onExclude: () => void,
+    private square: Square,
+    private selectedVal: CardValue,
+    private onValidate: (val: CardValue) => void,
+    private onExclude: (val: CardValue) => void,
     private onCancel: () => void
   ) {
     this.element = document.createElement('div');
@@ -29,10 +32,30 @@ export class ActionMenu {
     content.className = 'action-menu-content';
 
     const cardPreviewContainer = document.createElement('div');
-    cardPreviewContainer.className = 'action-menu-preview-container';
-    const cardPreview = createCardElement(this.card);
-    cardPreview.classList.add('extra-large', 'action-menu-preview');
-    cardPreviewContainer.appendChild(cardPreview);
+    cardPreviewContainer.className = 'action-menu-square-grid';
+
+    for (const val of ALL_VALUES) {
+      const container = document.createElement('div');
+      container.className = 'action-menu-mini-card-container';
+      this.miniCardContainers[val - 1] = container;
+
+      if (this.square.candidates.has(val)) {
+        const cardEl = createCardElement({ type: this.square.type, value: val });
+        cardEl.classList.add('large');
+        container.appendChild(cardEl);
+
+        if (val === this.selectedVal) {
+          container.classList.add('selected');
+        }
+
+        container.addEventListener('click', () => {
+          this.selectCard(val);
+        });
+      }
+
+      cardPreviewContainer.appendChild(container);
+    }
+
     content.appendChild(cardPreviewContainer);
 
     const buttonsContainer = document.createElement('div');
@@ -55,7 +78,7 @@ export class ActionMenu {
     excludeBtn.innerHTML = ICONS.EXCLUDE;
     excludeBtn.title = 'Exclude';
     excludeBtn.addEventListener('click', () => {
-      this.onExclude();
+      this.onExclude(this.selectedVal);
       this.close();
     });
     buttonsContainer.appendChild(excludeBtn);
@@ -66,13 +89,31 @@ export class ActionMenu {
     validateBtn.innerHTML = ICONS.VALIDATE;
     validateBtn.title = 'Validate';
     validateBtn.addEventListener('click', () => {
-      this.onValidate();
+      this.onValidate(this.selectedVal);
       this.close();
     });
     buttonsContainer.appendChild(validateBtn);
 
     content.appendChild(buttonsContainer);
     this.element.appendChild(content);
+  }
+
+  private selectCard(val: CardValue) {
+    if (val === this.selectedVal) return;
+
+    // Remove previous selection
+    const prevContainer = this.miniCardContainers[this.selectedVal - 1];
+    if (prevContainer) {
+      prevContainer.classList.remove('selected');
+    }
+
+    this.selectedVal = val;
+
+    // Add new selection
+    const newContainer = this.miniCardContainers[this.selectedVal - 1];
+    if (newContainer) {
+      newContainer.classList.add('selected');
+    }
   }
 
   public show(parent: HTMLElement = document.body) {

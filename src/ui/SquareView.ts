@@ -70,9 +70,10 @@ export class SquareView {
               e.preventDefault();
               // Open action menu for touch
               const menu = new ActionMenu(
-                { type: this.square.type, value: val },
-                () => this.board.set(this.square, val),
-                () => this.board.exclude(this.square, val),
+                this.square,
+                val,
+                (selectedVal) => this.board.set(this.square, selectedVal),
+                (selectedVal) => this.board.exclude(this.square, selectedVal),
                 () => { },
               );
               menu.show();
