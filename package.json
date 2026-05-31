@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "build:js": "node esbuild.ts",
-    "dev": "node --watch esbuild.ts --watch --serve",
+    "dev": "node --watch esbuild.ts --watch --serve --live-reload",
     "lint": "eslint src/",
     "typecheck": "tsc --noEmit"
   },
