@@ -18,7 +18,7 @@ const logRebuildPlugin: esbuild.Plugin = {
       t = Date.now();
     });
     onEnd(() => {
-      console.log(`Build finished in`, Date.now() - t, 'ms');;
+      console.log(`Build finished in`, Date.now() - t, 'ms');
     });
   },
 };
