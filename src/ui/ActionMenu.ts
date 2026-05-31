@@ -9,6 +9,15 @@ const ICONS = {
 };
 
 export class ActionMenu {
+  private static activeInstance: ActionMenu | null = null;
+
+  public static closeActive() {
+    if (ActionMenu.activeInstance) {
+      ActionMenu.activeInstance.onCancel();
+      ActionMenu.activeInstance.close();
+    }
+  }
+
   private element: HTMLElement;
   private miniCardContainers: HTMLElement[] = [];
 
@@ -17,7 +26,7 @@ export class ActionMenu {
     private selectedVal: CardValue,
     private onValidate: (val: CardValue) => void,
     private onExclude: (val: CardValue) => void,
-    private onCancel: () => void
+    private onCancel: () => void = () => { }
   ) {
     this.element = document.createElement('div');
     this.element.className = 'action-menu-overlay';
@@ -117,6 +126,12 @@ export class ActionMenu {
   }
 
   public show(parent: HTMLElement = document.body) {
+    if (ActionMenu.activeInstance && ActionMenu.activeInstance !== this) {
+      ActionMenu.activeInstance.onCancel();
+      ActionMenu.activeInstance.close();
+    }
+    ActionMenu.activeInstance = this;
+
     parent.appendChild(this.element);
     // Trigger animation
     requestAnimationFrame(() => {
@@ -125,6 +140,9 @@ export class ActionMenu {
   }
 
   public close() {
+    if (ActionMenu.activeInstance === this) {
+      ActionMenu.activeInstance = null;
+    }
     this.element.classList.remove('visible');
     setTimeout(() => {
       if (this.element.parentElement) {

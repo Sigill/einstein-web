@@ -13,6 +13,7 @@ import { createPauseScreen } from './ui/screens/PauseScreen.js';
 import { createWinScreen } from './ui/screens/WinScreen.js';
 import { createLoseScreen } from './ui/screens/LoseScreen.js';
 import { Timer } from './ui/Timer.js';
+import { ActionMenu } from './ui/ActionMenu.js';
 
 let board: Board;
 let puzzle: SolvedPuzzle;
@@ -34,6 +35,7 @@ const hintViewVisibility = new VisibilityObservable();
 screenManager.onToggle((active) => {
   if (active) {
     timer.pause();
+    ActionMenu.closeActive();
   } else {
     timer.start();
   }

@@ -74,7 +74,6 @@ export class SquareView {
                 val,
                 (selectedVal) => this.board.set(this.square, selectedVal),
                 (selectedVal) => this.board.exclude(this.square, selectedVal),
-                () => { },
               );
               menu.show();
             } else if (e.button === 0) { // left click (mouse)
