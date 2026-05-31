@@ -1,4 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { h } from '../jsx';
 import { Screen } from './ScreenManager';
 import { Timer } from '../Timer';

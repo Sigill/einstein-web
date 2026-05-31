@@ -98,7 +98,7 @@ export class SquareView {
 
   public getCandidateElement(val: number): HTMLElement | null {
     if (this.square.isResolved()) {
-      return this.resolvedContainer.querySelector('.card') as HTMLElement;
+      return this.resolvedContainer.querySelector('.card');
     }
     return this.miniCardElements[val - 1] || null;
   }
