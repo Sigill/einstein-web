@@ -373,58 +373,22 @@ var ActionMenu = class _ActionMenu {
         this.close();
       }
     });
-    const content = document.createElement("div");
-    content.className = "action-menu-content";
-    const cardPreviewContainer = document.createElement("div");
-    cardPreviewContainer.className = "action-menu-square-grid";
-    for (const val of ALL_VALUES) {
-      const container = document.createElement("div");
-      container.className = "action-menu-mini-card-container";
-      this.miniCardContainers[val - 1] = container;
-      if (this.square.candidates.has(val)) {
-        const cardEl = createCardElement({ type: this.square.type, value: val });
-        cardEl.classList.add("large");
-        container.appendChild(cardEl);
-        if (val === this.selectedVal) {
-          container.classList.add("selected");
-        }
-        container.addEventListener("click", () => {
-          this.selectCard(val);
-        });
+    const content = createActionContentElement(
+      square,
+      selectedVal,
+      (val) => {
+        this.onValidate(val);
+        this.close();
+      },
+      (val) => {
+        this.onExclude(val);
+        this.close();
+      },
+      () => {
+        this.onCancel();
+        this.close();
       }
-      cardPreviewContainer.appendChild(container);
-    }
-    content.appendChild(cardPreviewContainer);
-    const buttonsContainer = document.createElement("div");
-    buttonsContainer.className = "action-menu-buttons";
-    const cancelBtn = document.createElement("button");
-    cancelBtn.className = "action-menu-btn cancel";
-    cancelBtn.innerHTML = ICONS.CANCEL;
-    cancelBtn.title = "Cancel";
-    cancelBtn.addEventListener("click", () => {
-      this.onCancel();
-      this.close();
-    });
-    buttonsContainer.appendChild(cancelBtn);
-    const excludeBtn = document.createElement("button");
-    excludeBtn.className = "action-menu-btn blacklist";
-    excludeBtn.innerHTML = ICONS.EXCLUDE;
-    excludeBtn.title = "Exclude";
-    excludeBtn.addEventListener("click", () => {
-      this.onExclude(this.selectedVal);
-      this.close();
-    });
-    buttonsContainer.appendChild(excludeBtn);
-    const validateBtn = document.createElement("button");
-    validateBtn.className = "action-menu-btn validate";
-    validateBtn.innerHTML = ICONS.VALIDATE;
-    validateBtn.title = "Validate";
-    validateBtn.addEventListener("click", () => {
-      this.onValidate(this.selectedVal);
-      this.close();
-    });
-    buttonsContainer.appendChild(validateBtn);
-    content.appendChild(buttonsContainer);
+    );
     this.element.appendChild(content);
   }
   square;
@@ -440,19 +404,6 @@ var ActionMenu = class _ActionMenu {
     }
   }
   element;
-  miniCardContainers = [];
-  selectCard(val) {
-    if (val === this.selectedVal) return;
-    const prevContainer = this.miniCardContainers[this.selectedVal - 1];
-    if (prevContainer) {
-      prevContainer.classList.remove("selected");
-    }
-    this.selectedVal = val;
-    const newContainer = this.miniCardContainers[this.selectedVal - 1];
-    if (newContainer) {
-      newContainer.classList.add("selected");
-    }
-  }
   show(parent = document.body) {
     if (_ActionMenu.activeInstance && _ActionMenu.activeInstance !== this) {
       _ActionMenu.activeInstance.onCancel();
@@ -476,6 +427,72 @@ var ActionMenu = class _ActionMenu {
     }, 300);
   }
 };
+function createActionContentElement(square, selectedVal, onValidate, onExclude, onCancel = () => {
+}) {
+  const content = document.createElement("div");
+  content.className = "action-menu-content";
+  const cardPreviewContainer = document.createElement("div");
+  cardPreviewContainer.className = "action-menu-square-grid";
+  const miniCardContainers = [];
+  const selectCard = (val) => {
+    if (val === selectedVal) return;
+    const prevContainer = miniCardContainers[selectedVal - 1];
+    if (prevContainer) {
+      prevContainer.classList.remove("selected");
+    }
+    selectedVal = val;
+    const newContainer = miniCardContainers[selectedVal - 1];
+    if (newContainer) {
+      newContainer.classList.add("selected");
+    }
+  };
+  for (const val of ALL_VALUES) {
+    const container = document.createElement("div");
+    container.className = "action-menu-mini-card-container";
+    miniCardContainers[val - 1] = container;
+    if (square.candidates.has(val)) {
+      const cardEl = createCardElement({ type: square.type, value: val });
+      cardEl.classList.add("large");
+      container.appendChild(cardEl);
+      if (val === selectedVal) {
+        container.classList.add("selected");
+      }
+      container.addEventListener("click", () => {
+        selectCard(val);
+      });
+    }
+    cardPreviewContainer.appendChild(container);
+  }
+  content.appendChild(cardPreviewContainer);
+  const buttonsContainer = document.createElement("div");
+  buttonsContainer.className = "action-menu-buttons";
+  const cancelBtn = document.createElement("button");
+  cancelBtn.className = "action-menu-btn cancel";
+  cancelBtn.innerHTML = ICONS.CANCEL;
+  cancelBtn.title = "Cancel";
+  cancelBtn.addEventListener("click", () => {
+    onCancel();
+  });
+  buttonsContainer.appendChild(cancelBtn);
+  const excludeBtn = document.createElement("button");
+  excludeBtn.className = "action-menu-btn blacklist";
+  excludeBtn.innerHTML = ICONS.EXCLUDE;
+  excludeBtn.title = "Exclude";
+  excludeBtn.addEventListener("click", () => {
+    onExclude(selectedVal);
+  });
+  buttonsContainer.appendChild(excludeBtn);
+  const validateBtn = document.createElement("button");
+  validateBtn.className = "action-menu-btn validate";
+  validateBtn.innerHTML = ICONS.VALIDATE;
+  validateBtn.title = "Validate";
+  validateBtn.addEventListener("click", () => {
+    onValidate(selectedVal);
+  });
+  buttonsContainer.appendChild(validateBtn);
+  content.appendChild(buttonsContainer);
+  return content;
+}
 
 // src/ui/SquareView.ts
 var SquareView = class {
@@ -1263,16 +1280,18 @@ var ScreenManager = class {
 };
 
 // src/ui/jsx.tsx
+var SVG_TAGS = /* @__PURE__ */ new Set(["svg", "path", "circle", "rect", "line", "text", "g", "defs", "title", "desc", "symbol", "use"]);
 function h(tag, props, ...children) {
   if (typeof tag === "function") {
     return tag({ ...props || {}, children });
   }
-  const element = document.createElement(tag);
+  const is_svg = SVG_TAGS.has(tag);
+  const element = is_svg ? document.createElementNS("http://www.w3.org/2000/svg", tag) : document.createElement(tag);
   if (props) {
     for (const [key, value] of Object.entries(props)) {
       if (key === "className") {
-        element.className = value;
-      } else if (key.startsWith("data-")) {
+        element.classList.add(value);
+      } else if (is_svg || key.startsWith("data-")) {
         element.setAttribute(key, value);
       } else if (key === "style" && typeof value === "object") {
         Object.assign(element.style, value);
@@ -1395,6 +1414,73 @@ function createLoseScreen(props) {
   };
 }
 
+// src/ui/screens/HelpScreen.tsx
+function createHelpScreen(onDismiss) {
+  const solvedBoard = Board.create();
+  for (const type of ALL_TYPES) {
+    const typeIdx = ALL_TYPES.indexOf(type);
+    for (let col = 0; col < 6; col++) {
+      const val = (col + typeIdx) % 6 + 1;
+      solvedBoard.set(solvedBoard.squares[type][col], val);
+    }
+  }
+  const boardView2 = new BoardView(solvedBoard);
+  const solvedBoardContainer = /* @__PURE__ */ h("div", { className: "help-board-wrapper" });
+  solvedBoardContainer.appendChild(boardView2.element);
+  const cellSquare = new Square("C", 0);
+  cellSquare.candidates.delete(3);
+  const cellBoard = Board.create();
+  const squareView = new SquareView(cellSquare, cellBoard);
+  const squareCellContainer = /* @__PURE__ */ h("div", { className: "help-square-wrapper" });
+  squareCellContainer.appendChild(squareView.element);
+  const actionSquare = new Square("C", 0);
+  actionSquare.candidates.delete(3);
+  const inlineActionView = createActionContentElement(
+    actionSquare,
+    2,
+    // selected II
+    () => {
+    },
+    () => {
+    }
+  );
+  inlineActionView.classList.add("inline-action-view");
+  const vHint = makeHint(
+    new UnderRule({ type: "C", value: 2 }, { type: "F", value: 1 })
+    // II and +
+  );
+  const vHintEl = createVerticalHintElement(vHint, new VisibilityObservable());
+  const vHintWrapper = /* @__PURE__ */ h("div", { className: "help-hint-wrapper" });
+  vHintWrapper.appendChild(vHintEl);
+  const nearHint = makeHint(
+    new NearRule({ type: "A", value: 1 }, { type: "C", value: 2 })
+  );
+  const nearHintEl = createHorizontalHintElement(nearHint, new VisibilityObservable());
+  const nearHintWrapper = /* @__PURE__ */ h("div", { className: "help-hint-wrapper" });
+  nearHintWrapper.appendChild(nearHintEl);
+  const dirHint = makeHint(
+    new DirectionRule({ type: "A", value: 3 }, { type: "E", value: 4 })
+  );
+  const dirHintEl = createHorizontalHintElement(dirHint, new VisibilityObservable());
+  const dirHintWrapper = /* @__PURE__ */ h("div", { className: "help-hint-wrapper" });
+  dirHintWrapper.appendChild(dirHintEl);
+  const betHint = makeHint(
+    new BetweenRule({ type: "D", value: 1 }, { type: "B", value: 5 }, { type: "F", value: 6 })
+  );
+  const betHintEl = createHorizontalHintElement(betHint, new VisibilityObservable());
+  const betHintWrapper = /* @__PURE__ */ h("div", { className: "help-hint-wrapper" });
+  betHintWrapper.appendChild(betHintEl);
+  const container = /* @__PURE__ */ h("div", { className: "help-screen-container", style: "pointer-events: auto;" }, /* @__PURE__ */ h("div", { className: "help-screen-header" }, /* @__PURE__ */ h("h2", null, "How to Play"), /* @__PURE__ */ h("button", { className: "help-close-btn", onclick: onDismiss }, /* @__PURE__ */ h("svg", { viewBox: "0 0 24 24", width: "24", height: "24", stroke: "currentColor", "stroke-width": "2.5", fill: "none", "stroke-linecap": "round", "stroke-linejoin": "round" }, /* @__PURE__ */ h("line", { x1: "18", y1: "6", x2: "6", y2: "18" }), /* @__PURE__ */ h("line", { x1: "6", y1: "6", x2: "18", y2: "18" })))), /* @__PURE__ */ h("div", { className: "help-screen-content" }, /* @__PURE__ */ h("section", { className: "help-section" }, /* @__PURE__ */ h("p", null, "The goal of the game is to open all cards in a square of 6x6 cards. When every card is open, the board looks like this:"), /* @__PURE__ */ h("div", { className: "help-center-element" }, solvedBoardContainer), /* @__PURE__ */ h("p", null, "Every row of the square contains cards of one type only:"), /* @__PURE__ */ h("ul", { className: "help-list" }, /* @__PURE__ */ h("li", null, /* @__PURE__ */ h("strong", null, "Row 1"), ": Arabic Digits (1, 2, 3, ...)"), /* @__PURE__ */ h("li", null, /* @__PURE__ */ h("strong", null, "Row 2"), ": Letters (A, B, C, ...)"), /* @__PURE__ */ h("li", null, /* @__PURE__ */ h("strong", null, "Row 3"), ": Roman Numerals (I, II, III, ...)"), /* @__PURE__ */ h("li", null, /* @__PURE__ */ h("strong", null, "Row 4"), ": Dice faces (\u2680, \u2681, \u2682, ...)"), /* @__PURE__ */ h("li", null, /* @__PURE__ */ h("strong", null, "Row 5"), ": Geometric Shapes (Triangle, Square, Diamond, ...)"), /* @__PURE__ */ h("li", null, /* @__PURE__ */ h("strong", null, "Row 6"), ": Mathematical Symbols (+, -, \xF7, ...)"))), /* @__PURE__ */ h("section", { className: "help-section" }, /* @__PURE__ */ h("h3", null, "Method of Exclusion"), /* @__PURE__ */ h("p", null, "Use logic and open cards with the method of exclusion. If a card is not open, the cell contains every possible candidate card. For example:"), /* @__PURE__ */ h("div", { className: "help-center-element" }, squareCellContainer), /* @__PURE__ */ h("p", null, "means that this cell may contain every Roman numeral with the exception of ", /* @__PURE__ */ h("strong", null, "III"), " (because the card with the III image is excluded/absent).")), /* @__PURE__ */ h("section", { className: "help-section" }, /* @__PURE__ */ h("h3", null, "Controls"), /* @__PURE__ */ h("div", { className: "help-controls-grid" }, /* @__PURE__ */ h("div", { className: "help-control-card" }, /* @__PURE__ */ h("h4", null, "Mouse Devices"), /* @__PURE__ */ h("p", null, /* @__PURE__ */ h("strong", null, "Left-click"), " on a candidate to validate/open it as the only option for that cell, discarding other candidates."), /* @__PURE__ */ h("p", null, /* @__PURE__ */ h("strong", null, "Right-click"), " on a candidate to exclude/blacklist it from the cell.")), /* @__PURE__ */ h("div", { className: "help-control-card" }, /* @__PURE__ */ h("h4", null, "Touchscreen Devices"), /* @__PURE__ */ h("p", null, /* @__PURE__ */ h("strong", null, "Tap"), " on a candidate card to open a menu where you can select which card to act on, then choose to open/validate or exclude it:"), /* @__PURE__ */ h("div", { className: "help-center-element", style: "margin-top: 15px;" }, inlineActionView)))), /* @__PURE__ */ h("section", { className: "help-section" }, /* @__PURE__ */ h("h3", null, "Hints"), /* @__PURE__ */ h("p", null, "Use hints to solve the puzzle. Hints are visual constraints showing relations between cards. You can click or tap on any hint to grey it out once you have fully resolved it."), /* @__PURE__ */ h("div", { className: "help-hint-item" }, /* @__PURE__ */ h("div", { className: "help-hint-description" }, /* @__PURE__ */ h("h4", null, "Vertical Hints"), /* @__PURE__ */ h("p", null, "Indicates that both cards are located in the ", /* @__PURE__ */ h("strong", null, "same column"), ":")), vHintWrapper), /* @__PURE__ */ h("div", { className: "help-hint-item" }, /* @__PURE__ */ h("div", { className: "help-hint-description" }, /* @__PURE__ */ h("h4", null, "Horizontal: Neighbour Hint"), /* @__PURE__ */ h("p", null, "Indicates that the two cards are located in adjacent/neighbouring columns (the order is unknown):")), nearHintWrapper), /* @__PURE__ */ h("div", { className: "help-hint-item" }, /* @__PURE__ */ h("div", { className: "help-hint-description" }, /* @__PURE__ */ h("h4", null, "Horizontal: Directional Hint"), /* @__PURE__ */ h("p", null, "Indicates that the left card is positioned somewhere to the left of the right card (at any distance):")), dirHintWrapper), /* @__PURE__ */ h("div", { className: "help-hint-item" }, /* @__PURE__ */ h("div", { className: "help-hint-description" }, /* @__PURE__ */ h("h4", null, "Horizontal: Between Hint"), /* @__PURE__ */ h("p", null, "Indicates that the center card is positioned between the other two, in adjacent columns (the outer cards can be in either order):")), betHintWrapper))));
+  container.addEventListener("click", (e) => {
+    e.stopPropagation();
+  });
+  return {
+    element: container,
+    name: "help",
+    canDismissByOverlayClick: true
+  };
+}
+
 // src/app.ts
 var board;
 var puzzle;
@@ -1432,6 +1518,9 @@ document.addEventListener("visibilitychange", () => {
 });
 document.getElementById("btn-toggle-hints").addEventListener("click", () => {
   hintViewVisibility.toggle();
+});
+document.getElementById("btn-help").addEventListener("click", () => {
+  screenManager.push(createHelpScreen(() => screenManager.pop()));
 });
 function startGame(debugData) {
   finished = false;
