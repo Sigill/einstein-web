@@ -34,8 +34,8 @@ const hintViewVisibility = new VisibilityObservable();
 
 screenManager.onToggle((active) => {
   if (active) {
-    timer.pause();
     ActionMenu.closeActive();
+    timer.pause();
   } else {
     timer.start();
   }

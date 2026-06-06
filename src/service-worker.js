@@ -1,6 +1,6 @@
 const CACHE_NAME = 'einstein-cache-__VERSION_HASH__';
 const ASSETS = [
-  'app.html',
+  'index.html',
   'app.css',
   'app.js',
   'assets/fonts/open-sans/open-sans-latin-400-normal.woff2',
