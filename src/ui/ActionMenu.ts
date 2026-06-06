@@ -19,7 +19,6 @@ export class ActionMenu {
   }
 
   private element: HTMLElement;
-  private miniCardContainers: HTMLElement[] = [];
 
   constructor(
     private square: Square,
@@ -37,92 +36,24 @@ export class ActionMenu {
       }
     });
 
-    const content = document.createElement('div');
-    content.className = 'action-menu-content';
-
-    const cardPreviewContainer = document.createElement('div');
-    cardPreviewContainer.className = 'action-menu-square-grid';
-
-    for (const val of ALL_VALUES) {
-      const container = document.createElement('div');
-      container.className = 'action-menu-mini-card-container';
-      this.miniCardContainers[val - 1] = container;
-
-      if (this.square.candidates.has(val)) {
-        const cardEl = createCardElement({ type: this.square.type, value: val });
-        cardEl.classList.add('large');
-        container.appendChild(cardEl);
-
-        if (val === this.selectedVal) {
-          container.classList.add('selected');
-        }
-
-        container.addEventListener('click', () => {
-          this.selectCard(val);
-        });
+    const content = createActionContentElement(
+      square,
+      selectedVal,
+      (val) => {
+        this.onValidate(val);
+        this.close();
+      },
+      (val) => {
+        this.onExclude(val);
+        this.close();
+      },
+      () => {
+        this.onCancel();
+        this.close();
       }
+    );
 
-      cardPreviewContainer.appendChild(container);
-    }
-
-    content.appendChild(cardPreviewContainer);
-
-    const buttonsContainer = document.createElement('div');
-    buttonsContainer.className = 'action-menu-buttons';
-
-    // Cancel button
-    const cancelBtn = document.createElement('button');
-    cancelBtn.className = 'action-menu-btn cancel';
-    cancelBtn.innerHTML = ICONS.CANCEL;
-    cancelBtn.title = 'Cancel';
-    cancelBtn.addEventListener('click', () => {
-      this.onCancel();
-      this.close();
-    });
-    buttonsContainer.appendChild(cancelBtn);
-
-    // Exclude button
-    const excludeBtn = document.createElement('button');
-    excludeBtn.className = 'action-menu-btn blacklist';
-    excludeBtn.innerHTML = ICONS.EXCLUDE;
-    excludeBtn.title = 'Exclude';
-    excludeBtn.addEventListener('click', () => {
-      this.onExclude(this.selectedVal);
-      this.close();
-    });
-    buttonsContainer.appendChild(excludeBtn);
-
-    // Validate button
-    const validateBtn = document.createElement('button');
-    validateBtn.className = 'action-menu-btn validate';
-    validateBtn.innerHTML = ICONS.VALIDATE;
-    validateBtn.title = 'Validate';
-    validateBtn.addEventListener('click', () => {
-      this.onValidate(this.selectedVal);
-      this.close();
-    });
-    buttonsContainer.appendChild(validateBtn);
-
-    content.appendChild(buttonsContainer);
     this.element.appendChild(content);
-  }
-
-  private selectCard(val: CardValue) {
-    if (val === this.selectedVal) return;
-
-    // Remove previous selection
-    const prevContainer = this.miniCardContainers[this.selectedVal - 1];
-    if (prevContainer) {
-      prevContainer.classList.remove('selected');
-    }
-
-    this.selectedVal = val;
-
-    // Add new selection
-    const newContainer = this.miniCardContainers[this.selectedVal - 1];
-    if (newContainer) {
-      newContainer.classList.add('selected');
-    }
   }
 
   public show(parent: HTMLElement = document.body) {
@@ -151,3 +82,98 @@ export class ActionMenu {
     }, 300);
   }
 }
+
+export function createActionContentElement(
+  square: Square,
+  selectedVal: CardValue,
+  onValidate: (val: CardValue) => void,
+  onExclude: (val: CardValue) => void,
+  onCancel: () => void = () => { }
+): HTMLElement {
+  const content = document.createElement('div');
+  content.className = 'action-menu-content';
+
+  const cardPreviewContainer = document.createElement('div');
+  cardPreviewContainer.className = 'action-menu-square-grid';
+
+  const miniCardContainers: HTMLElement[] = [];
+
+  const selectCard = (val: CardValue) => {
+    if (val === selectedVal) return;
+
+    // Remove previous selection
+    const prevContainer = miniCardContainers[selectedVal - 1];
+    if (prevContainer) {
+      prevContainer.classList.remove('selected');
+    }
+
+    selectedVal = val;
+
+    // Add new selection
+    const newContainer = miniCardContainers[selectedVal - 1];
+    if (newContainer) {
+      newContainer.classList.add('selected');
+    }
+  };
+
+  for (const val of ALL_VALUES) {
+    const container = document.createElement('div');
+    container.className = 'action-menu-mini-card-container';
+    miniCardContainers[val - 1] = container;
+
+    if (square.candidates.has(val)) {
+      const cardEl = createCardElement({ type: square.type, value: val });
+      cardEl.classList.add('large');
+      container.appendChild(cardEl);
+
+      if (val === selectedVal) {
+        container.classList.add('selected');
+      }
+
+      container.addEventListener('click', () => {
+        selectCard(val);
+      });
+    }
+
+    cardPreviewContainer.appendChild(container);
+  }
+
+  content.appendChild(cardPreviewContainer);
+
+  const buttonsContainer = document.createElement('div');
+  buttonsContainer.className = 'action-menu-buttons';
+
+  // Cancel button
+  const cancelBtn = document.createElement('button');
+  cancelBtn.className = 'action-menu-btn cancel';
+  cancelBtn.innerHTML = ICONS.CANCEL;
+  cancelBtn.title = 'Cancel';
+  cancelBtn.addEventListener('click', () => {
+    onCancel();
+  });
+  buttonsContainer.appendChild(cancelBtn);
+
+  // Exclude button
+  const excludeBtn = document.createElement('button');
+  excludeBtn.className = 'action-menu-btn blacklist';
+  excludeBtn.innerHTML = ICONS.EXCLUDE;
+  excludeBtn.title = 'Exclude';
+  excludeBtn.addEventListener('click', () => {
+    onExclude(selectedVal);
+  });
+  buttonsContainer.appendChild(excludeBtn);
+
+  // Validate button
+  const validateBtn = document.createElement('button');
+  validateBtn.className = 'action-menu-btn validate';
+  validateBtn.innerHTML = ICONS.VALIDATE;
+  validateBtn.title = 'Validate';
+  validateBtn.addEventListener('click', () => {
+    onValidate(selectedVal);
+  });
+  buttonsContainer.appendChild(validateBtn);
+
+  content.appendChild(buttonsContainer);
+  return content;
+}
+

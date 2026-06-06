@@ -2,6 +2,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
+const SVG_TAGS = new Set(['svg', 'path', 'circle', 'rect', 'line', 'text', 'g', 'defs', 'title', 'desc', 'symbol', 'use']);
+
 /**
  * Simple JSX factory that creates HTMLElements.
  */
@@ -9,18 +11,22 @@ export function h(
   tag: string | ((props: any) => HTMLElement),
   props: Record<string, any> | null,
   ...children: (Node | string | number | boolean | null | undefined)[]
-): HTMLElement {
+): HTMLElement | SVGElement {
   if (typeof tag === 'function') {
     return tag({ ...(props || {}), children });
   }
 
-  const element = document.createElement(tag);
+  const is_svg = SVG_TAGS.has(tag);
+
+  const element = is_svg
+    ? document.createElementNS('http://www.w3.org/2000/svg', tag)
+    : document.createElement(tag);
 
   if (props) {
     for (const [key, value] of Object.entries(props)) {
       if (key === 'className') {
-        element.className = value;
-      } else if (key.startsWith('data-')) {
+        element.classList.add(value);
+      } else if (is_svg || key.startsWith('data-')) {
         element.setAttribute(key, value);
       } else if (key === 'style' && typeof value === 'object') {
         Object.assign(element.style, value);

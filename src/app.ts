@@ -12,6 +12,7 @@ import { ScreenManager } from './ui/screens/ScreenManager.js';
 import { createPauseScreen } from './ui/screens/PauseScreen.js';
 import { createWinScreen } from './ui/screens/WinScreen.js';
 import { createLoseScreen } from './ui/screens/LoseScreen.js';
+import { createHelpScreen } from './ui/screens/HelpScreen.js';
 import { Timer } from './ui/Timer.js';
 import { ActionMenu } from './ui/ActionMenu.js';
 
@@ -60,6 +61,10 @@ document.addEventListener('visibilitychange', () => {
 // Toggle hints button toggles the visibility state of the entire hint view
 document.getElementById('btn-toggle-hints')!.addEventListener('click', () => {
   hintViewVisibility.toggle();
+});
+
+document.getElementById('btn-help')!.addEventListener('click', () => {
+  screenManager.push(createHelpScreen(() => screenManager.pop()));
 });
 
 function startGame(debugData?: Parameters<typeof generate>[0]) {
