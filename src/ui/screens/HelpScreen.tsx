@@ -119,19 +119,19 @@ export function createHelpScreen(onDismiss: () => void): Screen {
             {squareCellContainer}
           </div>
           <p>
-            means that this cell may contain every Roman numeral with the exception of <strong>III</strong> (because the card with the III image is excluded/absent).
+            means that this cell may contain every Roman numeral with the exception of <strong>III</strong> (because the card with the III image is absent).
           </p>
         </section>
 
         <section className="help-section">
           <h3>Controls</h3>
           <div className="help-controls-grid">
-            <div className="help-control-card">
+            <div className="help-block">
               <h4>Mouse Devices</h4>
               <p><strong>Left-click</strong> on a candidate to validate/open it as the only option for that cell, discarding other candidates.</p>
               <p><strong>Right-click</strong> on a candidate to exclude/blacklist it from the cell.</p>
             </div>
-            <div className="help-control-card">
+            <div className="help-block">
               <h4>Touchscreen Devices</h4>
               <p><strong>Tap</strong> on a candidate card to open a menu where you can select which card to act on, then choose to open/validate or exclude it:</p>
               <div className="help-center-element" style="margin-top: 15px;">
@@ -148,15 +148,15 @@ export function createHelpScreen(onDismiss: () => void): Screen {
             You can click or tap on any hint to grey it out once you have fully resolved it.
           </p>
 
-          <div className="help-hint-item">
-            <div className="help-hint-description">
+          <div className="help-hint-item help-block">
+            <div className="description">
               <h4>Vertical Hints</h4>
               <p>Indicates that both cards are located in the <strong>same column</strong>:</p>
             </div>
             {vHintWrapper}
           </div>
 
-          <div className="help-hint-item">
+          <div className="help-hint-item help-block">
             <div className="help-hint-description">
               <h4>Horizontal: Neighbour Hint</h4>
               <p>Indicates that the two cards are located in adjacent/neighbouring columns (the order is unknown):</p>
@@ -164,16 +164,16 @@ export function createHelpScreen(onDismiss: () => void): Screen {
             {nearHintWrapper}
           </div>
 
-          <div className="help-hint-item">
-            <div className="help-hint-description">
+          <div className="help-hint-item help-block">
+            <div className="description">
               <h4>Horizontal: Directional Hint</h4>
               <p>Indicates that the left card is positioned somewhere to the left of the right card (at any distance):</p>
             </div>
             {dirHintWrapper}
           </div>
 
-          <div className="help-hint-item">
-            <div className="help-hint-description">
+          <div className="help-hint-item help-block">
+            <div className="description">
               <h4>Horizontal: Between Hint</h4>
               <p>Indicates that the center card is positioned between the other two, in adjacent columns (the outer cards can be in either order):</p>
             </div>

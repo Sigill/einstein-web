@@ -4,7 +4,7 @@
   border-radius: 16px;
   width: 90vw;
   max-width: 680px;
-  max-height: 85vh;
+  max-height: 95vh;
   display: flex;
   flex-direction: column;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85);
@@ -78,21 +78,45 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+
+  h3 {
+    margin: 0;
+    font-size: 1.3rem;
+    color: #fff;
+    border-left: 3px solid #ff9800;
+    padding-left: 10px;
+  }
+
+  p {
+    margin: 0;
+    line-height: 1.6;
+    font-size: 1rem;
+    color: #b0b0b0;
+  }
 }
 
-.help-section h3 {
-  margin: 0;
-  font-size: 1.3rem;
-  color: #fff;
-  border-left: 3px solid #ff9800;
-  padding-left: 10px;
-}
+.help-block {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  padding: 16px;
 
-.help-section p {
-  margin: 0;
-  line-height: 1.6;
-  font-size: 1rem;
-  color: #b0b0b0;
+  .description {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  h4 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #fff;
+  }
+
+  p {
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
 }
 
 .help-list {
@@ -140,31 +164,6 @@
 @media (max-width: 600px) {
   .help-controls-grid {
     grid-template-columns: 1fr;
-  }
-}
-
-.help-hint-item,
-.help-control-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 10px;
-  padding: 16px;
-
-  .description {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  h4 {
-    margin: 0;
-    font-size: 1.1rem;
-    color: #fff;
-  }
-
-  p {
-    font-size: 0.9rem;
-    line-height: 1.5;
   }
 }
 
