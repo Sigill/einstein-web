@@ -1,0 +1,78 @@
+:root {
+  /* This is the padding around the whole game. */
+  --fullscreen-container-padding: 10px;
+
+  /* This is the padding around the board, the buttons and the hints. */
+  --fullscreen-container-item-padding: 10px;
+
+  /*
+   * The board width is 2 * padding + 6 * cell-size + 5 * card-gap.
+   * The horizontal hints width is 2 * padding + 3 * cell-size + 2 * h-hint-h-gap.
+   * The vertical hints width is 2 * padding + 15 * cell-size + 14 * card-gap.
+   * The board, the horizontal hints and the vertical hints have all the same padding.
+   *
+   * The board + horizontal hints therefore have 4 item-padding
+   * Horizontally, that's a total of 15 cells in both cases.
+   * So 5 card-gap + 2 horizontal hint horizontal gaps must equal 14 card gaps.
+   * (2 * padding + 6 * cell-size + 5 * card-gap) + (2 * padding + 9 * cell-size + 2 * h-hint-h-gap) = 2 * padding + 15 * cell-size + 14 * card-gap
+   * 4 * padding + 5 * card-gap + 2 * h-hint-h-gap = 2 * padding + 14 * card-gap
+   * 9 * card-gap - 2 * padding = 2 * h-hint-h-gap
+   */
+
+  /* TODO reduce to 2, but simply doing it cause the RHS of the screen to overflow.*/
+  --card-gap: 4px;
+  --h-hint-h-gap: 8px;
+
+  /* Those shall to be equal */
+  --usable-width-board-and-h-hints: calc(100lvw - 2 * var(--fullscreen-container-padding) - 4 * var(--fullscreen-container-item-padding) - 5 * var(--card-gap) - 2 * var(--h-hint-h-gap));
+  --usable-width-v-hints: calc(100lvw - 2 * var(--fullscreen-container-padding) - 2 * var(--fullscreen-container-item-padding) - 14 * var(--card-gap));
+
+  --usable-height-v-and-h-hints: calc(100lvh - 2 * var(--fullscreen-container-padding) - 4 * var(--fullscreen-container-item-padding) - 7 * var(--card-gap));
+
+  --usable-width-per-cell: calc(var(--usable-width-v-hints) / 15);
+  --usable-height-v-and-h-hints-per-cell: calc(var(--usable-height-v-and-h-hints) / 10);
+
+  --cell-size: clamp(50px, min(var(--usable-width-per-cell), var(--usable-height-v-and-h-hints-per-cell)), 100px);
+  --mini-size: calc(var(--cell-size) / 3.3);
+}
+
+html,
+body {
+  height: 100%;
+  user-select: none;
+}
+
+body {
+  display: grid;
+  place-items: center;
+
+  overflow: auto;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  box-sizing: border-box;
+}
+
+.fullscreen-container {
+  box-sizing: border-box;
+
+  padding: var(--fullscreen-container-padding);
+
+  display: grid;
+  /* Centers the entire grid horizontally */
+  justify-content: center;
+  /* Centers the entire grid vertically */
+  align-content: start;
+  /* Align the grid items to the top */
+  align-items: start;
+
+  grid-template-areas:
+    "board   hints-h"
+    "buttons hints-h"
+    "hints-v hints-v";
+  grid-template-columns: min-content min-content;
+  grid-template-rows: min-content 1fr min-content;
+}
+
+.side-panel {
+  display: contents;
+}

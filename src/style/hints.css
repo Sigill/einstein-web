@@ -1,0 +1,147 @@
+#hints-v-container {
+  grid-area: hints-v;
+
+  display: grid;
+  grid-template-columns: repeat(15, var(--cell-size));
+  gap: var(--card-gap);
+
+  border-radius: 12px;
+  padding: var(--fullscreen-container-item-padding);
+  box-sizing: border-box;
+}
+
+#hints-h-container {
+  grid-area: hints-h;
+
+  display: grid;
+  grid-template-rows: repeat(8, var(--cell-size));
+  gap: var(--card-gap) var(--h-hint-h-gap);
+
+  border-radius: 12px;
+  padding: var(--fullscreen-container-item-padding);
+  grid-auto-flow: column;
+}
+
+.hint {
+  display: flex;
+  background: var(--card-bg);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: opacity 0.3s;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  box-sizing: border-box;
+
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  /* When highlighted on tap, we can see cards overflowing on the top. */
+  overflow: hidden;
+}
+
+.hint:empty {
+  cursor: default;
+}
+
+.hint.hidden,
+.hint:empty {
+  opacity: 0.2;
+}
+
+.vertical-hint {
+  flex-direction: column;
+  width: var(--cell-size);
+  height: calc(var(--cell-size) * 2);
+}
+
+.horizontal-hint {
+  flex-direction: row;
+  width: calc(var(--cell-size) * 3);
+  height: var(--cell-size);
+}
+
+.hint-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ccc;
+  width: calc(var(--cell-size) * 0.9);
+  height: calc(var(--cell-size) * 0.9);
+}
+
+@keyframes blink-animation {
+  0% {
+    background-color: var(--card-bg);
+  }
+
+  50% {
+    background-color: #666;
+    border-color: #fff;
+    transform: scale(1.05);
+  }
+
+  100% {
+    background-color: var(--card-bg);
+  }
+}
+
+.blink {
+  animation: blink-animation 0.6s ease-in-out 3;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+    text-shadow: 0 0 15px rgba(255, 255, 123, 0.6);
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+}
+
+@media (max-width: 860px) and (orientation: landscape) {
+  #hints-h-container {
+    grid-auto-flow: row;
+    grid-template-rows: unset;
+    grid-template-columns: repeat(2, calc(3 * var(--cell-size)));
+    padding: 0;
+  }
+
+  #hints-v-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .hint:empty {
+    display: none;
+  }
+}
+
+@media (max-width: 560px) and (max-aspect-ratio: 7/10) {
+  #hints-h-container {
+    grid-auto-flow: row;
+    grid-template-rows: unset;
+    grid-template-columns: repeat(2, calc(3 * var(--cell-size)));
+    padding: 0;
+  }
+
+  #hints-v-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .hint:empty {
+    display: none;
+  }
+}

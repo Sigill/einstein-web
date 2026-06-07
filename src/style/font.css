@@ -1,0 +1,13 @@
+* {
+  /*
+   * Use the Open Sans font.
+   * Browsers/platforms use different default fonts, with different font metrics.
+   * Using one specific font allows to correctly tune the font metric and ensure
+   * that characters are perfectly located where we want them to be.
+   */
+  font-family: "Open Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  font-variation-settings: "wdth" 100;
+}

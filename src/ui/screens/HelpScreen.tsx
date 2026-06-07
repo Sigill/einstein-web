@@ -22,7 +22,7 @@ export function createHelpScreen(onDismiss: () => void): Screen {
     }
   }
   const boardView = new BoardView(solvedBoard);
-  const solvedBoardContainer = <div className="help-board-wrapper"></div> as HTMLElement;
+  const solvedBoardContainer = <div className="help-board-wrapper board-container"></div> as HTMLElement;
   solvedBoardContainer.appendChild(boardView.element);
 
   // 2. Square Cell View with Candidates (Excluding III)

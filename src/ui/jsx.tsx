@@ -24,8 +24,8 @@ export function h(
 
   if (props) {
     for (const [key, value] of Object.entries(props)) {
-      if (key === 'className') {
-        element.classList.add(value);
+      if (key === 'className') { // TODO className is weird.
+        element.classList.add(...value.split(' '));
       } else if (is_svg || key.startsWith('data-')) {
         element.setAttribute(key, value);
       } else if (key === 'style' && typeof value === 'object') {

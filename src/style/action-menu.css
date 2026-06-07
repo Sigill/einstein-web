@@ -1,0 +1,138 @@
+.action-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100lvw;
+  height: 100lvh;
+  background-color: rgba(0, 0, 0, 0);
+  /* eslint-disable-next-line css/use-baseline */
+  backdrop-filter: blur(0px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s, backdrop-filter 0.3s;
+  pointer-events: none;
+}
+
+.action-menu-overlay.visible {
+  background-color: rgba(0, 0, 0, 0.75);
+  /* eslint-disable-next-line css/use-baseline */
+  backdrop-filter: blur(4px);
+  pointer-events: auto;
+}
+
+.action-menu-content {
+  background: #1e1e1e;
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  padding: 20px;
+  width: auto;
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+  transform: scale(0.8);
+  opacity: 0;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s;
+}
+
+.action-menu-overlay.visible .action-menu-content {
+  transform: scale(1);
+  opacity: 1;
+}
+
+.action-menu-preview-container {
+  background: #252525;
+  padding: 15px;
+  border-radius: 12px;
+  border: 1px solid #333;
+}
+
+.action-menu-square-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 12px;
+  padding: 12px;
+  background: #222;
+  border-radius: 14px;
+  border: 1px solid var(--border-color);
+  box-sizing: border-box;
+}
+
+.action-menu-mini-card-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-color: #2b2b2b;
+  width: calc(var(--cell-size) * 0.9);
+  height: calc(var(--cell-size) * 0.9);
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+
+.action-menu-mini-card-container:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.action-menu-mini-card-container.selected {
+  border-color: #ff9800;
+  background-color: rgba(255, 152, 0, 0.15);
+  box-shadow: 0 0 10px rgba(255, 152, 0, 0.3);
+  transform: scale(1.05);
+}
+
+.action-menu-mini-card-container:not(:has(.card)) {
+  cursor: default;
+  background-color: transparent;
+  border-color: transparent;
+}
+
+.action-menu-buttons {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  width: 100%;
+  justify-content: center;
+}
+
+.action-menu-btn {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-size: 1.5rem;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.1s, filter 0.2s;
+  flex-shrink: 0;
+}
+
+.action-menu-btn:active {
+  transform: scale(0.9);
+}
+
+.action-menu-btn.validate {
+  background: linear-gradient(135deg, #4caf50, #2e7d32);
+  color: white;
+}
+
+.action-menu-btn.blacklist {
+  background: linear-gradient(135deg, #f44336, #c62828);
+  color: white;
+}
+
+.action-menu-btn.cancel {
+  background: #333;
+  color: #bbb;
+}

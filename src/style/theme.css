@@ -1,0 +1,15 @@
+:root {
+  --bg-color: #121212;
+  --text-color: #ffffff;
+  --card-bg: #2d2d2d;
+  --card-bg-hover: #3d3d3d;
+  --card-bg-resolved: #404040;
+  --border-color: #4a4a4a;
+
+  --color-A: #ff7b7b;
+  --color-B: #7bff7b;
+  --color-C: #7b7bff;
+  --color-D: #ffff7b;
+  --color-E: #ff7bff;
+  --color-F: #7bffff;
+}
