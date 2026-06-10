@@ -5,7 +5,7 @@ import { createVerticalHintElement, createHorizontalHintElement } from './ui/Hin
 import { generatePuzzleWithAcceptableAmountOfHints } from './engine/PuzzleGenerator.js';
 import { OpenRule, NearRule, DirectionRule, UnderRule, BetweenRule, ruleFromJSON, RulesTypes } from './engine/Rules.js';
 import { VisibilityObservable } from './misc/VisibilityObservable.js';
-import { toJSON as serializePuzzle, fromJSON as puzzleFromJSON, SolvedPuzzle } from './engine/SolvedPuzzle.js';
+import { toJSON as serializePuzzle, fromJSON as puzzleFromJSON, SolvedPuzzle, SolvedPuzzleJSON } from './engine/SolvedPuzzle.js';
 import { CardValue } from './engine/Card.js';
 import { findFirstApplicableHint, findFirstDiff, blinkHint, blinkSquareCandidate } from './ui/HintUtils.js';
 import { ScreenManager } from './ui/screens/ScreenManager.js';
@@ -146,7 +146,7 @@ document.getElementById('btn-reveal-card')!.addEventListener('click', () => {
   if (hint) {
     blinkHint(hint, hintToElement);
 
-    const tempBoard = Board.fromJSON(oldState);
+    const tempBoard = Board.fromJSON(oldState, board.types, board.values);
     hint.rule.apply(tempBoard);
     const newState = tempBoard.toJSON();
 
@@ -182,7 +182,7 @@ function logGameState() {
 
 function generate(debugData?: {
   board: CardValue[][][];
-  puzzle: CardValue[][];
+  puzzle: SolvedPuzzleJSON;
   hints: { rule: RulesTypes, visible: boolean }[]
 }): {
   board: Board;
@@ -190,8 +190,8 @@ function generate(debugData?: {
   hints: Hint[]
 } {
   if (debugData !== undefined) {
-    const board = Board.fromJSON(debugData.board);
     const puzzle = puzzleFromJSON(debugData.puzzle);
+    const board = Board.fromJSON(debugData.board, puzzle.types, puzzle.values);
     const hints = debugData.hints.map((h) => {
       const rule = ruleFromJSON(h.rule);
       return makeHint(rule, h.visible);

@@ -1,6 +1,6 @@
-import { CardType, CardValue } from '../engine/Card';
+import { CardType } from '../engine/Card';
 
-export const SYMBOL_MAP: Record<CardType, Record<CardValue, string>> = {
+export const SYMBOL_MAP: Record<CardType, { [value: number]: string }> = {
   A: { 1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6' },
   B: { 1: 'A', 2: 'B', 3: 'C', 4: 'D', 5: 'E', 6: 'F' },
   C: { 1: 'I', 2: 'II', 3: 'III', 4: 'IV', 5: 'V', 6: 'VI' },

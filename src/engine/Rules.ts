@@ -1,11 +1,7 @@
 import { randomInt } from '../misc/utils.js';
 import { Board } from './Board.js';
-import { CardType, ALL_TYPES, Card, sameCard } from './Card.js';
+import { Card, sameCard } from './Card.js';
 import { SolvedPuzzle } from './SolvedPuzzle.js';
-
-function randomType(): CardType {
-  return ALL_TYPES[randomInt(6)];
-}
 
 export abstract class Rule {
   abstract apply(board: Board): boolean;
@@ -22,7 +18,7 @@ export interface NearRuleData {
 }
 
 /**
- * Rule: two cards are located at neighboring columns.
+ * Rule: two cards are located at neighbouring columns.
  */
 export class NearRule extends Rule {
   readonly card1: Card;
@@ -35,24 +31,26 @@ export class NearRule extends Rule {
   }
 
   static FromSolvedPuzzle(puzzle: SolvedPuzzle): NearRule {
-    const col1 = randomInt(6);
-    const type1 = randomType();
-    const val1 = puzzle[type1][col1];
+    const { types, values, grid } = puzzle;
+    const col1 = randomInt(values.length);
+    const typeIdx1 = randomInt(types.length);
+    const val1 = grid[typeIdx1][col1];
 
+    const maxCol = values.length - 1;
     let col2: number;
     if (col1 === 0) col2 = 1;
-    else if (col1 === 5) col2 = 4;
+    else if (col1 === maxCol) col2 = maxCol - 1;
     else col2 = randomInt(2) ? col1 + 1 : col1 - 1;
 
-    const type2 = randomType();
-    const val2 = puzzle[type2][col2];
+    const typeIdx2 = randomInt(types.length);
+    const val2 = grid[typeIdx2][col2];
 
-    return new NearRule({ type: type1, value: val1 }, { type: type2, value: val2 });
+    return new NearRule({ type: types[typeIdx1], value: val1 }, { type: types[typeIdx2], value: val2 });
   }
 
   private applyToCol(board: Board, col: number, nearCard: Card, thisCard: Card): boolean {
     const hasLeft = col === 0 ? false : board.isPossible(col - 1, nearCard);
-    const hasRight = col === 5 ? false : board.isPossible(col + 1, nearCard);
+    const hasRight = col === board.numValues - 1 ? false : board.isPossible(col + 1, nearCard);
 
     if (!hasRight && !hasLeft && board.isPossible(col, thisCard)) {
       board.excludeAt(col, thisCard);
@@ -63,7 +61,7 @@ export class NearRule extends Rule {
 
   apply(board: Board): boolean {
     let changed = false;
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < board.numValues; i++) {
       if (this.applyToCol(board, i, this.card1, this.card2)) changed = true;
       if (this.applyToCol(board, i, this.card2, this.card1)) changed = true;
     }
@@ -97,7 +95,7 @@ export interface DirectionRuleData {
 }
 
 /**
- * Rule: one card is located to the left of another card.
+ * Rule: one card is located to the left of another card (at any distance).
  */
 export class DirectionRule extends Rule {
   readonly card1: Card;
@@ -110,20 +108,24 @@ export class DirectionRule extends Rule {
   }
 
   static FromSolvedPuzzle(puzzle: SolvedPuzzle): DirectionRule {
-    const row1 = randomType();
-    const row2 = randomType();
-    const col1 = randomInt(5);
-    const col2 = randomInt(5 - col1) + col1 + 1;
-    const val1 = puzzle[row1][col1];
-    const val2 = puzzle[row2][col2];
-    return new DirectionRule({ type: row1, value: val1 }, { type: row2, value: val2 });
+    const { types, values, grid } = puzzle;
+    const typeIdx1 = randomInt(types.length);
+    const typeIdx2 = randomInt(types.length);
+    const col1 = randomInt(values.length - 1);
+    const col2 = randomInt(values.length - 1 - col1) + col1 + 1;
+    const val1 = grid[typeIdx1][col1];
+    const val2 = grid[typeIdx2][col2];
+    return new DirectionRule(
+      { type: types[typeIdx1], value: val1 },
+      { type: types[typeIdx2], value: val2 },
+    );
   }
 
   apply(board: Board): boolean {
     let changed = false;
 
-    // Check col 0 to 5
-    for (let i = 0; i < 6; i++) {
+    // Remove card2 from all columns up to (and including) the leftmost possible column of card1
+    for (let i = 0; i < board.numValues; i++) {
       if (board.isPossible(i, this.card2)) {
         board.excludeAt(i, this.card2);
         changed = true;
@@ -133,8 +135,8 @@ export class DirectionRule extends Rule {
       }
     }
 
-    // Check col 5 down to 0
-    for (let i = 5; i >= 0; i--) {
+    // Remove card1 from all columns at or right of the rightmost possible column of card2
+    for (let i = board.numValues - 1; i >= 0; i--) {
       if (board.isPossible(i, this.card1)) {
         board.excludeAt(i, this.card1);
         changed = true;
@@ -188,10 +190,11 @@ export class OpenRule extends Rule {
   }
 
   static FromSolvedPuzzle(puzzle: SolvedPuzzle): OpenRule {
-    const col = randomInt(6);
-    const row = randomType();
-    const val = puzzle[row][col];
-    return new OpenRule({ type: row, value: val }, col);
+    const { types, values, grid } = puzzle;
+    const col = randomInt(values.length);
+    const typeIdx = randomInt(types.length);
+    const val = grid[typeIdx][col];
+    return new OpenRule({ type: types[typeIdx], value: val }, col);
   }
 
   apply(board: Board): boolean {
@@ -243,21 +246,25 @@ export class UnderRule extends Rule {
   }
 
   static FromSolvedPuzzle(puzzle: SolvedPuzzle): UnderRule {
-    const col = randomInt(6);
-    const row1 = randomType();
-    const val1 = puzzle[row1][col];
-    let row2: CardType;
+    const { types, values, grid } = puzzle;
+    const col = randomInt(values.length);
+    const typeIdx1 = randomInt(types.length);
+    const val1 = grid[typeIdx1][col];
+    let typeIdx2: number;
     do {
-      row2 = randomType();
-    } while (row2 === row1);
-    const val2 = puzzle[row2][col];
-    return new UnderRule({ type: row1, value: val1 }, { type: row2, value: val2 });
+      typeIdx2 = randomInt(types.length);
+    } while (typeIdx2 === typeIdx1);
+    const val2 = grid[typeIdx2][col];
+    return new UnderRule(
+      { type: types[typeIdx1], value: val1 },
+      { type: types[typeIdx2], value: val2 },
+    );
   }
 
   apply(board: Board): boolean {
     let changed = false;
 
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < board.numValues; i++) {
       if (!board.isPossible(i, this.card1) && board.isPossible(i, this.card2)) {
         board.excludeAt(i, this.card2);
         changed = true;
@@ -300,7 +307,8 @@ export interface BetweenRuleData {
 }
 
 /**
- * Rule: one card is located between two other cards.
+ * Rule: one card is located between two other cards in adjacent columns.
+ * Requires at least 3 columns (numValues >= 3).
  */
 export class BetweenRule extends Rule {
   readonly card1: Card;
@@ -315,21 +323,23 @@ export class BetweenRule extends Rule {
   }
 
   static FromSolvedPuzzle(puzzle: SolvedPuzzle): BetweenRule {
-    const centerType = randomType();
-    const type1 = randomType();
-    const type2 = randomType();
+    const { types, values, grid } = puzzle;
+    const centerTypeIdx = randomInt(types.length);
+    const typeIdx1 = randomInt(types.length);
+    const typeIdx2 = randomInt(types.length);
 
-    const centerCol = randomInt(4) + 1; // 1 to 4
-    const centerCard = { type: centerType, value: puzzle[centerType][centerCol] };
+    // centerCol must have a valid left and right neighbour
+    const centerCol = randomInt(values.length - 2) + 1; // 1 to numValues-2
+    const centerCard = { type: types[centerTypeIdx], value: grid[centerTypeIdx][centerCol] };
 
     let card1: Card;
     let card2: Card;
     if (randomInt(2)) {
-      card1 = { type: type1, value: puzzle[type1][centerCol - 1] };
-      card2 = { type: type2, value: puzzle[type2][centerCol + 1] };
+      card1 = { type: types[typeIdx1], value: grid[typeIdx1][centerCol - 1] };
+      card2 = { type: types[typeIdx2], value: grid[typeIdx2][centerCol + 1] };
     } else {
-      card1 = { type: type1, value: puzzle[type1][centerCol + 1] };
-      card2 = { type: type2, value: puzzle[type2][centerCol - 1] };
+      card1 = { type: types[typeIdx1], value: grid[typeIdx1][centerCol + 1] };
+      card2 = { type: types[typeIdx2], value: grid[typeIdx2][centerCol - 1] };
     }
 
     return new BetweenRule(card1, card2, centerCard);
@@ -338,21 +348,22 @@ export class BetweenRule extends Rule {
   apply(board: Board): boolean {
     let changed = false;
 
+    // The center card cannot be in the first or last column
     if (board.isPossible(0, this.centerCard)) {
       changed = true;
       board.excludeAt(0, this.centerCard);
     }
-
-    if (board.isPossible(5, this.centerCard)) {
+    if (board.isPossible(board.numValues - 1, this.centerCard)) {
       changed = true;
-      board.excludeAt(5, this.centerCard);
+      board.excludeAt(board.numValues - 1, this.centerCard);
     }
 
     let goodLoop: boolean;
     do {
       goodLoop = false;
 
-      for (let i = 1; i < 5; i++) {
+      // For each interior column, check if the center card can still be placed there
+      for (let i = 1; i < board.numValues - 1; i++) {
         if (board.isPossible(i, this.centerCard)) {
           const conditionA = board.isPossible(i - 1, this.card1) && board.isPossible(i + 1, this.card2);
           const conditionB = board.isPossible(i - 1, this.card2) && board.isPossible(i + 1, this.card1);
@@ -363,13 +374,14 @@ export class BetweenRule extends Rule {
         }
       }
 
-      for (let i = 0; i < 6; i++) {
+      // For each column, check if the outer cards can still satisfy the constraint
+      for (let i = 0; i < board.numValues; i++) {
         let leftPossible = false;
         let rightPossible = false;
 
         if (board.isPossible(i, this.card2)) {
           if (i >= 2) leftPossible = board.isPossible(i - 1, this.centerCard) && board.isPossible(i - 2, this.card1);
-          if (i < 4) rightPossible = board.isPossible(i + 1, this.centerCard) && board.isPossible(i + 2, this.card1);
+          if (i < board.numValues - 2) rightPossible = board.isPossible(i + 1, this.centerCard) && board.isPossible(i + 2, this.card1);
           if (!leftPossible && !rightPossible) {
             board.excludeAt(i, this.card2);
             goodLoop = true;
@@ -377,8 +389,10 @@ export class BetweenRule extends Rule {
         }
 
         if (board.isPossible(i, this.card1)) {
+          leftPossible = false;
+          rightPossible = false;
           if (i >= 2) leftPossible = board.isPossible(i - 1, this.centerCard) && board.isPossible(i - 2, this.card2);
-          if (i < 4) rightPossible = board.isPossible(i + 1, this.centerCard) && board.isPossible(i + 2, this.card2);
+          if (i < board.numValues - 2) rightPossible = board.isPossible(i + 1, this.centerCard) && board.isPossible(i + 2, this.card2);
           if (!leftPossible && !rightPossible) {
             board.excludeAt(i, this.card1);
             goodLoop = true;
@@ -424,19 +438,19 @@ export function printRules(rules: Rule[]) {
   }
 }
 
-export function ruleFromJSON(json: any): Rule {
+export function ruleFromJSON(json: unknown): Rule {
   const data = json as { type: string };
   switch (data.type) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-    case 'near': return new NearRule(json.card1, json.card2);
+    case 'near': return new NearRule((json as NearRuleData).card1, (json as NearRuleData).card2);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-    case 'direction': return new DirectionRule(json.card1, json.card2);
+    case 'direction': return new DirectionRule((json as DirectionRuleData).card1, (json as DirectionRuleData).card2);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-    case 'open': return new OpenRule(json.card, json.col);
+    case 'open': return new OpenRule((json as OpenRuleData).card, (json as OpenRuleData).col);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-    case 'under': return new UnderRule(json.card1, json.card2);
+    case 'under': return new UnderRule((json as UnderRuleData).card1, (json as UnderRuleData).card2);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-    case 'between': return new BetweenRule(json.card1, json.card2, json.centerCard);
+    case 'between': return new BetweenRule((json as BetweenRuleData).card1, (json as BetweenRuleData).card2, (json as BetweenRuleData).centerCard);
     default: throw new Error(`Unknown rule type ${String(data.type)}`);
   }
 }

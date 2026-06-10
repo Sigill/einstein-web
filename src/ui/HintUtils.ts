@@ -2,7 +2,7 @@ import { Board } from '../engine/Board.js';
 import { Hint } from '../engine/Hint.js';
 import { Rule, OpenRule } from '../engine/Rules.js';
 import { BoardView } from './BoardView.js';
-import { CardType, CardValue, ALL_TYPES } from '../engine/Card.js';
+import { CardType, CardValue, ALL_TYPES, ALL_VALUES } from '../engine/Card.js';
 
 export interface Diff {
   type: CardType;
@@ -24,7 +24,9 @@ export function findFirstApplicableHint(board: CardValue[][][], hints: Hint[]): 
     if (hint.rule instanceof OpenRule) continue;
 
     // Use toJSON to clone board state efficiently for testing
-    const tempBoard = Board.fromJSON(board);
+    const types = ALL_TYPES.slice(0, board.length);
+    const values = ALL_VALUES.slice(0, board[0].length);
+    const tempBoard = Board.fromJSON(board, types, values);
     if (hint.rule.apply(tempBoard)) {
       return hint;
     }
@@ -45,9 +47,11 @@ export function findFirstDiff(oldState: CardValue[][][], newState: CardValue[][]
   const allDiffs: Diff[] = [];
   const resolvedDiffs: Diff[] = [];
 
-  for (let t = 0; t < ALL_TYPES.length; t++) {
+  const numTypes = oldState.length;
+  for (let t = 0; t < numTypes; t++) {
     const type = ALL_TYPES[t];
-    for (let c = 0; c < 6; c++) {
+    const numValues = oldState[t].length;
+    for (let c = 0; c < numValues; c++) {
       const oldCands = oldState[t][c];
       const newCands = newState[t][c];
 

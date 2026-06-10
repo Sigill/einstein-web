@@ -23,6 +23,7 @@ export class ActionMenu {
   constructor(
     private square: Square,
     private selectedVal: CardValue,
+    private values: CardValue[],
     private onValidate: (val: CardValue) => void,
     private onExclude: (val: CardValue) => void,
     private onCancel: () => void = () => { }
@@ -39,6 +40,7 @@ export class ActionMenu {
     const content = createActionContentElement(
       square,
       selectedVal,
+      values,
       (val) => {
         this.onValidate(val);
         this.close();
@@ -86,6 +88,7 @@ export class ActionMenu {
 export function createActionContentElement(
   square: Square,
   selectedVal: CardValue,
+  values: CardValue[],
   onValidate: (val: CardValue) => void,
   onExclude: (val: CardValue) => void,
   onCancel: () => void = () => { }
@@ -116,7 +119,7 @@ export function createActionContentElement(
     }
   };
 
-  for (const val of ALL_VALUES) {
+  for (const val of values) {
     const container = document.createElement('div');
     container.className = 'action-menu-mini-card-container';
     miniCardContainers[val - 1] = container;

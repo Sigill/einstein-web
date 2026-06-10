@@ -2,7 +2,7 @@ import { h } from '../jsx';
 import { Screen } from './ScreenManager';
 import { Board } from '../../engine/Board';
 import { Square } from '../../engine/Square';
-import { CardValue, ALL_TYPES } from '../../engine/Card';
+import { CardValue, ALL_TYPES, ALL_VALUES } from '../../engine/Card';
 import { makeHint } from '../../engine/Hint';
 import { UnderRule, NearRule, DirectionRule, BetweenRule } from '../../engine/Rules';
 import { BoardView } from '../BoardView';
@@ -39,6 +39,7 @@ export function createHelpScreen(onDismiss: () => void): Screen {
   const inlineActionView = createActionContentElement(
     actionSquare,
     2, // selected II
+    ALL_VALUES,
     () => { },
     () => { }
   );

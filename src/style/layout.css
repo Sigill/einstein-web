@@ -19,7 +19,6 @@
    * 9 * card-gap - 2 * padding = 2 * h-hint-h-gap
    */
 
-  /* TODO reduce to 2, but simply doing it cause the RHS of the screen to overflow.*/
   --card-gap: 4px;
   --h-hint-h-gap: 8px;
 

@@ -1,5 +1,5 @@
 import { Observable } from '../misc/observable.js';
-import { CardType, CardValue, ALL_TYPES, Card } from './Card.js';
+import { CardType, CardValue, ALL_TYPES, ALL_VALUES, Card } from './Card.js';
 import { Square } from './Square.js';
 import { SolvedPuzzle } from './SolvedPuzzle.js';
 
@@ -8,25 +8,44 @@ export type BoardEvents = {
 };
 
 /**
- * Represents the 6x6 game grid.
- * It manages constraints propagation systematically: when a square is validated or a candidate is blacklisted,
- * it queues these actions and resolves subsequent deductions step-by-step to prevent recursion depth issues and
- * to emit atomic events only when the board reaches a steady state.
+ * Represents the game grid of arbitrary size (numTypes × numValues).
+ *
+ * `types`  – the ordered CardType slice in use (rows).
+ * `values` – the ordered CardValue slice in use (columns, always 1-based).
+ *
+ * `squares` is keyed by CardType; only keys present in `types` are populated.
+ *
+ * It manages constraints propagation systematically: when a square is validated or a candidate
+ * is blacklisted, it queues these actions and resolves subsequent deductions step-by-step to
+ * prevent recursion depth issues and to emit atomic events only when the board reaches a
+ * steady state.
  */
 export class Board extends Observable<BoardEvents> {
+  public readonly types: CardType[];
+  public readonly values: CardValue[];
+  public readonly numTypes: number;
+  public readonly numValues: number;
+
+  /** Only keys present in `types` are populated. */
   public squares: Record<CardType, Square[]>;
+
   private isBatching = false;
   private modifiedSquares = new Set<Square>();
 
-  static create() {
-    return new Board();
+  /** Creates a fresh board of the given dimensions (defaults to 6×6). */
+  static create(numTypes = 6, numValues = 6) {
+    return new Board(ALL_TYPES.slice(0, numTypes), ALL_VALUES.slice(0, numValues));
   }
 
-  static fromJSON(json: CardValue[][][]) {
-    const board = new Board();
-    for (let i = 0; i < ALL_TYPES.length; i++) {
-      for (let j = 0; j < 6; j++) {
-        const square = board.squares[ALL_TYPES[i]][j];
+  /**
+   * Reconstructs a Board from a serialized candidates array produced by `toJSON()`.
+   * `types` and `values` must match the originating board's dimensions.
+   */
+  static fromJSON(json: CardValue[][][], types: CardType[], values: CardValue[]) {
+    const board = new Board(types, values);
+    for (let i = 0; i < types.length; i++) {
+      for (let j = 0; j < values.length; j++) {
+        const square = board.squares[types[i]][j];
         square.candidates.clear();
         for (const value of json[i][j]) {
           square.candidates.add(value);
@@ -41,13 +60,17 @@ export class Board extends Observable<BoardEvents> {
     return board;
   }
 
-  private constructor() {
+  private constructor(types: CardType[], values: CardValue[]) {
     super();
+    this.types = types;
+    this.values = values;
+    this.numTypes = types.length;
+    this.numValues = values.length;
     this.squares = {} as Record<CardType, Square[]>;
-    for (const type of ALL_TYPES) {
+    for (const type of types) {
       this.squares[type] = [];
-      for (let col = 0; col < 6; col++) {
-        this.squares[type].push(new Square(type, col));
+      for (let col = 0; col < values.length; col++) {
+        this.squares[type].push(new Square(type, col, values));
       }
     }
   }
@@ -100,7 +123,7 @@ export class Board extends Observable<BoardEvents> {
   }
 
   public isSolved(): boolean {
-    for (const type of ALL_TYPES) {
+    for (const type of this.types) {
       for (const square of this.squares[type]) {
         if (!square.isResolved()) return false;
       }
@@ -109,9 +132,10 @@ export class Board extends Observable<BoardEvents> {
   }
 
   public isValid(puzzle: SolvedPuzzle): boolean {
-    for (const type of ALL_TYPES) {
-      for (let col = 0; col < 6; col++) {
-        if (!this.squares[type][col].candidates.has(puzzle[type][col])) {
+    for (let t = 0; t < this.numTypes; t++) {
+      const type = this.types[t];
+      for (let col = 0; col < this.numValues; col++) {
+        if (!this.squares[type][col].candidates.has(puzzle.grid[t][col])) {
           return false;
         }
       }
@@ -120,19 +144,26 @@ export class Board extends Observable<BoardEvents> {
   }
 
   /**
-   * Scans the row for columns that have only one candidate, or values that have only one column.
+   * Scans a row for columns that have only one candidate, or values that have only one column,
+   * then validates those squares. Repeats until no more deductions can be made.
+   *
+   * Card values are always 1-based (1..numValues), so `val - 1` is used as a 0-based index.
    */
   private checkSingles(type: CardType) {
     const row = this.squares[type];
-    const cellsCnt: number[] = [0, 0, 0, 0, 0, 0];
-    const elsCnt: number[] = [0, 0, 0, 0, 0, 0];
-    const lastValInCell: number[] = [0, 0, 0, 0, 0, 0];
-    const lastCellForVal: number[] = [0, 0, 0, 0, 0, 0];
+    // cellsCnt[col]    = number of candidates still in that column's square
+    // elsCnt[val-1]    = number of squares still containing that value
+    // lastValInCell[col]  = last (only) candidate seen in that cell
+    // lastCellForVal[v-1] = last (only) column seen for that value
+    const cellsCnt: number[] = new Array<number>(this.numValues).fill(0);
+    const elsCnt: number[] = new Array<number>(this.numValues).fill(0);
+    const lastValInCell: CardValue[] = new Array<CardValue>(this.numValues).fill(0);
+    const lastCellForVal: number[] = new Array<number>(this.numValues).fill(0);
 
-    for (let col = 0; col < 6; col++) {
+    for (let col = 0; col < this.numValues; col++) {
       const square = row[col];
       for (const val of square.candidates) {
-        const valIdx = val - 1;
+        const valIdx = val - 1; // values are 1-based
         elsCnt[valIdx]++;
         lastCellForVal[valIdx] = col;
         cellsCnt[col]++;
@@ -142,13 +173,13 @@ export class Board extends Observable<BoardEvents> {
 
     let changed = false;
 
-    // Check for cells with single candidate
-    for (let col = 0; col < 6; col++) {
+    // Check for cells with a single candidate
+    for (let col = 0; col < this.numValues; col++) {
       if (cellsCnt[col] === 1) {
-        const val = lastValInCell[col] as CardValue;
-        // If there is only one element in cell but it used somewhere else
+        const val = lastValInCell[col];
+        // If that value still appears in other squares, remove it from them
         if (elsCnt[val - 1] !== 1) {
-          for (let i = 0; i < 6; i++) {
+          for (let i = 0; i < this.numValues; i++) {
             if (i !== col) {
               if (row[i]._exclude(val)) {
                 this.modifiedSquares.add(row[i]);
@@ -157,7 +188,7 @@ export class Board extends Observable<BoardEvents> {
             }
           }
         }
-        // Ensure square value is set
+        // Ensure the square is validated
         if (!row[col].isResolved()) {
           row[col]._set(val);
           this.modifiedSquares.add(row[col]);
@@ -166,13 +197,13 @@ export class Board extends Observable<BoardEvents> {
       }
     }
 
-    // Check for single card value without exclusive cell
-    for (let valIdx = 0; valIdx < 6; valIdx++) {
+    // Check for a value that only fits in one cell
+    for (let valIdx = 0; valIdx < this.numValues; valIdx++) {
       if (elsCnt[valIdx] === 1) {
         const col = lastCellForVal[valIdx];
-        const val = (valIdx + 1) as CardValue;
+        const val = valIdx + 1; // 1-based
         if (cellsCnt[col] !== 1) {
-          // This card must be in this cell, remove other candidates
+          // This value must be in this cell — remove other candidates
           for (const cand of Array.from(row[col].candidates)) {
             if (cand !== val) {
               if (row[col]._exclude(cand)) {
@@ -182,7 +213,7 @@ export class Board extends Observable<BoardEvents> {
             }
           }
         }
-        // Ensure square value is set
+        // Ensure the square is validated
         if (!row[col].isResolved()) {
           row[col]._set(val);
           this.modifiedSquares.add(row[col]);
@@ -236,6 +267,6 @@ export class Board extends Observable<BoardEvents> {
   }
 
   toJSON(): CardValue[][][] {
-    return ALL_TYPES.map(type => this.squares[type].map(square => Array.from(square.candidates)));
+    return this.types.map(type => this.squares[type].map(square => Array.from(square.candidates)));
   }
 }

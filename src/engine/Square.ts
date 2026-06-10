@@ -7,19 +7,23 @@ export type SquareEvents = {
 };
 
 /**
- * Represents a single cell in the 6x6 game grid.
+ * Represents a single cell in the game grid.
  * Tracks its remaining `candidates` and its final resolved `value`.
  * Intended to act as a model: dispatches events when candidates are excluded or a value is set.
+ *
+ * `allValues` defines the initial candidate set and must match the board's value pool.
  */
 export class Square extends Observable<SquareEvents> {
   public value: CardValue | null = null;
+  public readonly candidates: Set<CardValue>;
 
   constructor(
     public readonly type: CardType,
     public readonly col: number,
-    public readonly candidates = new Set(ALL_VALUES)
+    allValues: CardValue[] = ALL_VALUES
   ) {
     super();
+    this.candidates = new Set(allValues);
   }
 
   private pendingChange = false;

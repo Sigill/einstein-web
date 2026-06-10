@@ -1,6 +1,5 @@
 import { Square } from '../engine/Square.js';
 import { Board } from '../engine/Board.js';
-import { ALL_VALUES } from '../engine/Card.js';
 import { createCardElement } from './CardView.js';
 import { ActionMenu } from './ActionMenu.js';
 
@@ -51,7 +50,7 @@ export class SquareView {
 
       this.element.classList.remove('resolved');
 
-      for (const val of ALL_VALUES) {
+      for (const val of this.board.values) {
         const miniCardContainer = document.createElement('div');
         miniCardContainer.className = 'mini-card-container';
         this.miniCardElements[val - 1] = miniCardContainer;
@@ -72,6 +71,7 @@ export class SquareView {
               const menu = new ActionMenu(
                 this.square,
                 val,
+                this.board.values,
                 (selectedVal) => this.board.set(this.square, selectedVal),
                 (selectedVal) => this.board.exclude(this.square, selectedVal),
               );

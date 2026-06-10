@@ -3,9 +3,10 @@ import { Rule, NearRule, OpenRule, UnderRule, DirectionRule, BetweenRule, printR
 import { generateRandomSolvedPuzzle, printPuzzle, SolvedPuzzle } from './SolvedPuzzle.js';
 
 /**
- * Generates a random rule.
+ * Generates a random rule appropriate for the given puzzle's dimensions.
  */
 function genRule(puzzle: SolvedPuzzle): Rule {
+  const numValues = puzzle.values.length;
   const a = Math.floor(Math.random() * 14);
   switch (a) {
     case 0:
@@ -30,7 +31,9 @@ function genRule(puzzle: SolvedPuzzle): Rule {
  * Checks if the puzzle can be solved with the given rules.
  */
 export function canSolve(puzzle: SolvedPuzzle, rules: Rule[]): boolean {
-  const board = Board.create();
+  const numTypes = puzzle.types.length;
+  const numValues = puzzle.values.length;
+  const board = Board.create(numTypes, numValues);
   let changed;
 
   do {
@@ -89,8 +92,8 @@ function generateRules(puzzle: SolvedPuzzle, rules: Rule[]) {
   } while (!rulesDone);
 }
 
-export function generatePuzzle(): { puzzle: SolvedPuzzle; rules: Rule[] } {
-  const puzzle: SolvedPuzzle = generateRandomSolvedPuzzle();
+export function generatePuzzle(numTypes = 6, numValues = 6): { puzzle: SolvedPuzzle; rules: Rule[] } {
+  const puzzle: SolvedPuzzle = generateRandomSolvedPuzzle(numTypes, numValues);
 
   printPuzzle(puzzle);
 
@@ -123,15 +126,22 @@ function countHints(rules: Rule[]): { horizontal: number, vertical: number } {
   return { horizontal, vertical };
 }
 
-export function generatePuzzleWithAcceptableAmountOfHints() {
+/**
+ * Hint display capacity constants for a standard 6×6 game.
+ * These may need adjusting for other board sizes.
+ */
+const MAX_HORIZONTAL_HINTS = 24;
+const MAX_VERTICAL_HINTS = 15;
+
+export function generatePuzzleWithAcceptableAmountOfHints(numTypes = 6, numValues = 6) {
   console.group('Generating solvable puzzle');
   do {
-    const { puzzle, rules } = generatePuzzle();
+    const { puzzle, rules } = generatePuzzle(numTypes, numValues);
 
     const hints = countHints(rules);
     console.log(`Puzzle has ${hints.horizontal} horizontal and ${hints.vertical} vertical hints`);
 
-    if (hints.horizontal <= 24 && hints.vertical <= 15) {
+    if (hints.horizontal <= MAX_HORIZONTAL_HINTS && hints.vertical <= MAX_VERTICAL_HINTS) {
       console.groupEnd();
       return { puzzle, rules };
     }
