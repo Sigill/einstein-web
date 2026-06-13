@@ -8,7 +8,7 @@ import { UnderRule, NearRule, DirectionRule, BetweenRule } from '../../engine/Ru
 import { BoardView } from '../BoardView';
 import { SquareView } from '../SquareView';
 import { createVerticalHintElement, createHorizontalHintElement } from '../HintsView';
-import { VisibilityObservable } from '../VisibilityObservable';
+import { VisibilityObservable } from '../../misc/VisibilityObservable';
 import { createActionContentElement } from '../ActionMenu';
 
 export function createHelpScreen(onDismiss: () => void): Screen {

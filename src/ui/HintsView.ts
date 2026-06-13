@@ -2,7 +2,7 @@ import { Hint } from '../engine/Hint.js';
 import { NearRule, DirectionRule, UnderRule, BetweenRule } from '../engine/Rules.js';
 import { createCardElement } from './CardView.js';
 import { Card } from '../engine/Card.js';
-import { VisibilityObservable } from './VisibilityObservable.js';
+import { VisibilityObservable } from '../misc/VisibilityObservable.js';
 
 export function createVerticalHintElement(hint: Hint, hintViewVisibility: VisibilityObservable): HTMLElement {
   if (!(hint.rule instanceof UnderRule)) {

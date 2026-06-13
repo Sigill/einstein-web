@@ -1,5 +1,5 @@
 import { Rule } from './Rules.js';
-import { VisibilityObservable } from '../ui/VisibilityObservable.js';
+import { VisibilityObservable } from '../misc/VisibilityObservable.js';
 
 export interface Hint {
   visibility: VisibilityObservable;

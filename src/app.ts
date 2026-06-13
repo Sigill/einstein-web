@@ -4,7 +4,7 @@ import { BoardView } from './ui/BoardView.js';
 import { createVerticalHintElement, createHorizontalHintElement } from './ui/HintsView.js';
 import { generatePuzzleWithAcceptableAmountOfHints } from './engine/PuzzleGenerator.js';
 import { OpenRule, NearRule, DirectionRule, UnderRule, BetweenRule, ruleFromJSON, RulesTypes } from './engine/Rules.js';
-import { VisibilityObservable } from './ui/VisibilityObservable.js';
+import { VisibilityObservable } from './misc/VisibilityObservable.js';
 import { toJSON as serializePuzzle, fromJSON as puzzleFromJSON, SolvedPuzzle } from './engine/SolvedPuzzle.js';
 import { CardValue } from './engine/Card.js';
 import { findFirstApplicableHint, findFirstDiff, blinkHint, blinkSquareCandidate } from './ui/HintUtils.js';
