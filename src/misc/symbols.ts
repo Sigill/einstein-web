@@ -1,10 +1,16 @@
-import { CardType } from '../engine/Card';
+import { getValueLabel } from '../engine/Card';
 
-export const SYMBOL_MAP: Record<CardType, { [value: number]: string }> = {
-  A: { 1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6' },
-  B: { 1: 'A', 2: 'B', 3: 'C', 4: 'D', 5: 'E', 6: 'F' },
-  C: { 1: 'I', 2: 'II', 3: 'III', 4: 'IV', 5: 'V', 6: 'VI' },
-  D: { 1: '⚀', 2: '⚁', 3: '⚂', 4: '⚃', 5: '⚄', 6: '⚅' },
-  E: { 1: '⯅', 2: '⯆', 3: '■', 4: '◆', 5: '⬟', 6: '⯂' },
-  F: { 1: '+', 2: '-', 3: '÷', 4: '×', 5: '=', 6: '√' }
-};
+const SYMBOLS_BY_TYPE: string[][] = [
+  ['1', '2', '3', '4', '5', '6'],
+  ['A', 'B', 'C', 'D', 'E', 'F'],
+  ['I', 'II', 'III', 'IV', 'V', 'VI'],
+  ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'],
+  ['⯅', '⯆', '■', '◆', '⬟', '⯂'],
+  ['+', '-', '÷', '×', '=', '√']
+];
+
+export function getSymbol(type: number, value: number): string {
+  if (type < 0 || type >= SYMBOLS_BY_TYPE.length) return getValueLabel(value);
+  const row = SYMBOLS_BY_TYPE[type];
+  return row[value] ?? getValueLabel(value);
+}

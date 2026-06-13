@@ -2,7 +2,7 @@ import { Board } from '../engine/Board.js';
 import { Hint } from '../engine/Hint.js';
 import { Rule, OpenRule } from '../engine/Rules.js';
 import { BoardView } from './BoardView.js';
-import { CardType, CardValue, ALL_TYPES, ALL_VALUES } from '../engine/Card.js';
+import { CardType, CardValue } from '../engine/Card.js';
 
 export interface Diff {
   type: CardType;
@@ -24,9 +24,7 @@ export function findFirstApplicableHint(board: CardValue[][][], hints: Hint[]): 
     if (hint.rule instanceof OpenRule) continue;
 
     // Use toJSON to clone board state efficiently for testing
-    const types = ALL_TYPES.slice(0, board.length);
-    const values = ALL_VALUES.slice(0, board[0].length);
-    const tempBoard = Board.fromJSON(board, types, values);
+    const tempBoard = Board.fromJSON(board, board.length, board[0].length);
     if (hint.rule.apply(tempBoard)) {
       return hint;
     }
@@ -36,7 +34,7 @@ export function findFirstApplicableHint(board: CardValue[][][], hints: Hint[]): 
 
 /**
  * Identify the first notable difference between two board states.
- * 
+ *
  * Logic:
  * 1. Identify all diffs in a row (all candidates removed).
  * 2. If a diff leads to a square being resolved, return the resolved card.
@@ -49,7 +47,6 @@ export function findFirstDiff(oldState: CardValue[][][], newState: CardValue[][]
 
   const numTypes = oldState.length;
   for (let t = 0; t < numTypes; t++) {
-    const type = ALL_TYPES[t];
     const numValues = oldState[t].length;
     for (let c = 0; c < numValues; c++) {
       const oldCands = oldState[t][c];
@@ -60,13 +57,13 @@ export function findFirstDiff(oldState: CardValue[][][], newState: CardValue[][]
 
         // Square was resolved.
         if (newCands.length === 1 && oldCands.length > 1) {
-          resolvedDiffs.push({ type, col: c, value: newCands[0] });
+          resolvedDiffs.push({ type: t, col: c, value: newCands[0] });
         }
 
         // Candidates were removed
         for (const v of oldCands) {
           if (!newCands.includes(v)) {
-            allDiffs.push({ type, col: c, value: v });
+            allDiffs.push({ type: t, col: c, value: v });
           }
         }
       }

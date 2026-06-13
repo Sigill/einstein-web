@@ -8,3 +8,11 @@ export function shuffleArray<T>(array: T[]) {
 export function randomInt(maxExclusive: number): number {
   return Math.floor(Math.random() * maxExclusive);
 }
+
+export function iota(n: number): Array<number> {
+  const values: Array<number> = [];
+  for (let i = 0; i < n; i++) {
+    values.push(i);
+  }
+  return values;
+}

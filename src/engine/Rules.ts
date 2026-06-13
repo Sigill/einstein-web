@@ -2,6 +2,7 @@ import { randomInt } from '../misc/utils.js';
 import { Board } from './Board.js';
 import { Card, sameCard } from './Card.js';
 import { SolvedPuzzle } from './SolvedPuzzle.js';
+import { getTypeLabel, getValueLabel } from './Card.js';
 
 export abstract class Rule {
   abstract apply(board: Board): boolean;
@@ -31,21 +32,20 @@ export class NearRule extends Rule {
   }
 
   static FromSolvedPuzzle(puzzle: SolvedPuzzle): NearRule {
-    const { types, values, grid } = puzzle;
-    const col1 = randomInt(values.length);
-    const typeIdx1 = randomInt(types.length);
-    const val1 = grid[typeIdx1][col1];
+    const { grid, numTypes, numValues } = puzzle;
+    const col1 = randomInt(numValues);
+    const type1 = randomInt(numTypes);
+    const val1 = grid[type1][col1];
 
-    const maxCol = values.length - 1;
+    const maxCol = numValues - 1;
     let col2: number;
     if (col1 === 0) col2 = 1;
     else if (col1 === maxCol) col2 = maxCol - 1;
     else col2 = randomInt(2) ? col1 + 1 : col1 - 1;
+    const type2 = randomInt(numTypes);
+    const val2 = grid[type2][col2];
 
-    const typeIdx2 = randomInt(types.length);
-    const val2 = grid[typeIdx2][col2];
-
-    return new NearRule({ type: types[typeIdx1], value: val1 }, { type: types[typeIdx2], value: val2 });
+    return new NearRule({ type: type1, value: val1 }, { type: type2, value: val2 });
   }
 
   private applyToCol(board: Board, col: number, nearCard: Card, thisCard: Card): boolean {
@@ -72,7 +72,7 @@ export class NearRule extends Rule {
   }
 
   getAsText(): string {
-    return `${this.card1.type}${this.card1.value} is near to ${this.card2.type}${this.card2.value}`;
+    return `${getTypeLabel(this.card1.type)}${getValueLabel(this.card1.value)} is near to ${getTypeLabel(this.card2.type)}${getValueLabel(this.card2.value)}`;
   }
 
   hasCard(card: Card): boolean {
@@ -108,16 +108,16 @@ export class DirectionRule extends Rule {
   }
 
   static FromSolvedPuzzle(puzzle: SolvedPuzzle): DirectionRule {
-    const { types, values, grid } = puzzle;
-    const typeIdx1 = randomInt(types.length);
-    const typeIdx2 = randomInt(types.length);
-    const col1 = randomInt(values.length - 1);
-    const col2 = randomInt(values.length - 1 - col1) + col1 + 1;
-    const val1 = grid[typeIdx1][col1];
-    const val2 = grid[typeIdx2][col2];
+    const { grid, numTypes, numValues } = puzzle;
+    const type1 = randomInt(numTypes);
+    const type2 = randomInt(numTypes);
+    const col1 = randomInt(numValues - 1);
+    const col2 = randomInt(numValues - 1 - col1) + col1 + 1;
+    const val1 = grid[type1][col1];
+    const val2 = grid[type2][col2];
     return new DirectionRule(
-      { type: types[typeIdx1], value: val1 },
-      { type: types[typeIdx2], value: val2 },
+      { type: type1, value: val1 },
+      { type: type2, value: val2 },
     );
   }
 
@@ -150,7 +150,7 @@ export class DirectionRule extends Rule {
   }
 
   getAsText() {
-    return `${this.card1.type}${this.card1.value} is from the left of ${this.card2.type}${this.card2.value}`;
+    return `${getTypeLabel(this.card1.type)}${getValueLabel(this.card1.value)} is from the left of ${getTypeLabel(this.card2.type)}${getValueLabel(this.card2.value)}`;
   }
 
   hasCard(card: Card): boolean {
@@ -190,11 +190,11 @@ export class OpenRule extends Rule {
   }
 
   static FromSolvedPuzzle(puzzle: SolvedPuzzle): OpenRule {
-    const { types, values, grid } = puzzle;
-    const col = randomInt(values.length);
-    const typeIdx = randomInt(types.length);
-    const val = grid[typeIdx][col];
-    return new OpenRule({ type: types[typeIdx], value: val }, col);
+    const { grid, numTypes, numValues } = puzzle;
+    const col = randomInt(numValues);
+    const type = randomInt(numTypes);
+    const val = grid[type][col];
+    return new OpenRule({ type: type, value: val }, col);
   }
 
   apply(board: Board): boolean {
@@ -206,7 +206,7 @@ export class OpenRule extends Rule {
   }
 
   getAsText() {
-    return `${this.card.type}${this.card.value} is at column ${this.col + 1}`;
+    return `${getTypeLabel(this.card.type)}${getValueLabel(this.card.value)} is at column ${this.col + 1}`;
   }
 
   hasCard(card: Card): boolean {
@@ -246,18 +246,18 @@ export class UnderRule extends Rule {
   }
 
   static FromSolvedPuzzle(puzzle: SolvedPuzzle): UnderRule {
-    const { types, values, grid } = puzzle;
-    const col = randomInt(values.length);
-    const typeIdx1 = randomInt(types.length);
-    const val1 = grid[typeIdx1][col];
-    let typeIdx2: number;
+    const { grid, numTypes, numValues } = puzzle;
+    const col = randomInt(numValues);
+    const type1 = randomInt(numTypes);
+    const val1 = grid[type1][col];
+    let type2: number;
     do {
-      typeIdx2 = randomInt(types.length);
-    } while (typeIdx2 === typeIdx1);
-    const val2 = grid[typeIdx2][col];
+      type2 = randomInt(numTypes);
+    } while (type2 === type1);
+    const val2 = grid[type2][col];
     return new UnderRule(
-      { type: types[typeIdx1], value: val1 },
-      { type: types[typeIdx2], value: val2 },
+      { type: type1, value: val1 },
+      { type: type2, value: val2 },
     );
   }
 
@@ -279,7 +279,7 @@ export class UnderRule extends Rule {
   }
 
   getAsText() {
-    return `${this.card1.type}${this.card1.value} is the same column as ${this.card2.type}${this.card2.value}`;
+    return `${getTypeLabel(this.card1.type)}${getValueLabel(this.card1.value)} is the same column as ${getTypeLabel(this.card2.type)}${getValueLabel(this.card2.value)}`;
   }
 
   hasCard(card: Card): boolean {
@@ -323,23 +323,23 @@ export class BetweenRule extends Rule {
   }
 
   static FromSolvedPuzzle(puzzle: SolvedPuzzle): BetweenRule {
-    const { types, values, grid } = puzzle;
-    const centerTypeIdx = randomInt(types.length);
-    const typeIdx1 = randomInt(types.length);
-    const typeIdx2 = randomInt(types.length);
+    const { grid, numTypes, numValues } = puzzle;
+    const centertype = randomInt(numTypes);
+    const type1 = randomInt(numTypes);
+    const type2 = randomInt(numTypes);
 
     // centerCol must have a valid left and right neighbour
-    const centerCol = randomInt(values.length - 2) + 1; // 1 to numValues-2
-    const centerCard = { type: types[centerTypeIdx], value: grid[centerTypeIdx][centerCol] };
+    const centerCol = randomInt(numValues - 2) + 1; // 1 to numValues-2
+    const centerCard = { type: centertype, value: grid[centertype][centerCol] };
 
     let card1: Card;
     let card2: Card;
     if (randomInt(2)) {
-      card1 = { type: types[typeIdx1], value: grid[typeIdx1][centerCol - 1] };
-      card2 = { type: types[typeIdx2], value: grid[typeIdx2][centerCol + 1] };
+      card1 = { type: type1, value: grid[type1][centerCol - 1] };
+      card2 = { type: type2, value: grid[type2][centerCol + 1] };
     } else {
-      card1 = { type: types[typeIdx1], value: grid[typeIdx1][centerCol + 1] };
-      card2 = { type: types[typeIdx2], value: grid[typeIdx2][centerCol - 1] };
+      card1 = { type: type1, value: grid[type1][centerCol + 1] };
+      card2 = { type: type2, value: grid[type2][centerCol - 1] };
     }
 
     return new BetweenRule(card1, card2, centerCard);
@@ -409,7 +409,7 @@ export class BetweenRule extends Rule {
   }
 
   getAsText() {
-    return `${this.centerCard.type}${this.centerCard.value} is between ${this.card1.type}${this.card1.value} and ${this.card2.type}${this.card2.value}`;
+    return `${getTypeLabel(this.centerCard.type)}${getValueLabel(this.centerCard.value)} is between ${getTypeLabel(this.card1.type)}${getValueLabel(this.card1.value)} and ${getTypeLabel(this.card2.type)}${getValueLabel(this.card2.value)}`;
   }
 
   hasCard(card: Card): boolean {
@@ -438,19 +438,19 @@ export function printRules(rules: Rule[]) {
   }
 }
 
-export function ruleFromJSON(json: unknown): Rule {
+export function ruleFromJSON(json: any): Rule {
   const data = json as { type: string };
   switch (data.type) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-    case 'near': return new NearRule((json as NearRuleData).card1, (json as NearRuleData).card2);
+    case 'near': return new NearRule(json.card1, json.card2);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-    case 'direction': return new DirectionRule((json as DirectionRuleData).card1, (json as DirectionRuleData).card2);
+    case 'direction': return new DirectionRule(json.card1, json.card2);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-    case 'open': return new OpenRule((json as OpenRuleData).card, (json as OpenRuleData).col);
+    case 'open': return new OpenRule(json.card, json.col);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-    case 'under': return new UnderRule((json as UnderRuleData).card1, (json as UnderRuleData).card2);
+    case 'under': return new UnderRule(json.card1, json.card2);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-    case 'between': return new BetweenRule((json as BetweenRuleData).card1, (json as BetweenRuleData).card2, (json as BetweenRuleData).centerCard);
+    case 'between': return new BetweenRule(json.card1, json.card2, json.centerCard);
     default: throw new Error(`Unknown rule type ${String(data.type)}`);
   }
 }

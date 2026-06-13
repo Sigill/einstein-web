@@ -2,6 +2,7 @@ import { Square } from '../engine/Square.js';
 import { Board } from '../engine/Board.js';
 import { createCardElement } from './CardView.js';
 import { ActionMenu } from './ActionMenu.js';
+import { getTypeLabel } from '../engine/Card.js';
 
 export class SquareView {
   public element: HTMLElement;
@@ -14,7 +15,8 @@ export class SquareView {
     private board: Board
   ) {
     this.element = document.createElement('div');
-    this.element.className = `square-cell type-${square.type}`;
+    const typeLabel = getTypeLabel(square.type);
+    this.element.className = `square-cell type-${typeLabel}`;
 
     this.candidatesContainer = document.createElement('div');
     this.candidatesContainer.className = 'candidates-grid';
@@ -50,10 +52,10 @@ export class SquareView {
 
       this.element.classList.remove('resolved');
 
-      for (const val of this.board.values) {
+      for (let val = 0; val < this.board.numValues; val++) {
         const miniCardContainer = document.createElement('div');
         miniCardContainer.className = 'mini-card-container';
-        this.miniCardElements[val - 1] = miniCardContainer;
+        this.miniCardElements[val] = miniCardContainer;
 
         if (this.square.candidates.has(val)) {
           const cardEl = createCardElement({ type: this.square.type, value: val });
@@ -68,10 +70,11 @@ export class SquareView {
             if (isTouch) {
               e.preventDefault();
               // Open action menu for touch
+              const values = Array.from({ length: this.board.numValues }, (_, i) => i);
               const menu = new ActionMenu(
                 this.square,
                 val,
-                this.board.values,
+                values,
                 (selectedVal) => this.board.set(this.square, selectedVal),
                 (selectedVal) => this.board.exclude(this.square, selectedVal),
               );
@@ -100,6 +103,6 @@ export class SquareView {
     if (this.square.isResolved()) {
       return this.resolvedContainer.querySelector('.card');
     }
-    return this.miniCardElements[val - 1] || null;
+    return this.miniCardElements[val] || null;
   }
 }

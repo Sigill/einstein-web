@@ -146,7 +146,7 @@ document.getElementById('btn-reveal-card')!.addEventListener('click', () => {
   if (hint) {
     blinkHint(hint, hintToElement);
 
-    const tempBoard = Board.fromJSON(oldState, board.types, board.values);
+    const tempBoard = Board.fromJSON(oldState, board.numTypes, board.numValues);
     hint.rule.apply(tempBoard);
     const newState = tempBoard.toJSON();
 
@@ -191,7 +191,7 @@ function generate(debugData?: {
 } {
   if (debugData !== undefined) {
     const puzzle = puzzleFromJSON(debugData.puzzle);
-    const board = Board.fromJSON(debugData.board, puzzle.types, puzzle.values);
+    const board = Board.fromJSON(debugData.board, puzzle.numTypes, puzzle.numValues);
     const hints = debugData.hints.map((h) => {
       const rule = ruleFromJSON(h.rule);
       return makeHint(rule, h.visible);

@@ -1,4 +1,4 @@
-import { CardValue, ALL_VALUES } from '../engine/Card.js';
+import { CardValue } from '../engine/Card.js';
 import { Square } from '../engine/Square.js';
 import { createCardElement } from './CardView.js';
 
@@ -105,7 +105,7 @@ export function createActionContentElement(
     if (val === selectedVal) return;
 
     // Remove previous selection
-    const prevContainer = miniCardContainers[selectedVal - 1];
+    const prevContainer = miniCardContainers[selectedVal];
     if (prevContainer) {
       prevContainer.classList.remove('selected');
     }
@@ -113,7 +113,7 @@ export function createActionContentElement(
     selectedVal = val;
 
     // Add new selection
-    const newContainer = miniCardContainers[selectedVal - 1];
+    const newContainer = miniCardContainers[selectedVal];
     if (newContainer) {
       newContainer.classList.add('selected');
     }
@@ -122,7 +122,7 @@ export function createActionContentElement(
   for (const val of values) {
     const container = document.createElement('div');
     container.className = 'action-menu-mini-card-container';
-    miniCardContainers[val - 1] = container;
+    miniCardContainers[val] = container;
 
     if (square.candidates.has(val)) {
       const cardEl = createCardElement({ type: square.type, value: val });
@@ -179,4 +179,3 @@ export function createActionContentElement(
   content.appendChild(buttonsContainer);
   return content;
 }
-

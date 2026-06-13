@@ -46,6 +46,7 @@ The project uses `esbuild` for code bundling.
 - **TS/CSS Build**: `node esbuild.ts`.
 - **Typecheck**: `npx tsc --noEmit`.
 - **Lint**: `npx eslint src/`.
+- **Test**: `npx wtr --node-resolve`.
 - **Development**: `npm run dev` (starts a watch-mode dev server). Once running, the game can be accessed at: <http://localhost:8000/src/app.html>
 
 ## Project Structure

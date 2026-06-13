@@ -1,19 +1,20 @@
 import { Card } from '../engine/Card.js';
-import { SYMBOL_MAP } from '../misc/symbols.js';
+import { getSymbol } from '../misc/symbols.js';
+import { getTypeLabel, getValueLabel } from '../engine/Card.js';
 
 const SHAPE_SVGS: { [value: number]: string } = {
   // Triangle Up
-  1: '<svg viewBox="0 0 100 100"><polygon points="50,15 90,85 10,85" stroke-width="8" stroke="currentColor" fill="transparent"/></svg>',
+  0: '<svg viewBox="0 0 100 100"><polygon points="50,15 90,85 10,85" stroke-width="8" stroke="currentColor" fill="transparent"/></svg>',
   // Triangle Down
-  2: '<svg viewBox="0 0 100 100"><polygon points="50,85 90,15 10,15" stroke-width="8" stroke="currentColor" fill="transparent"/></svg>',
+  1: '<svg viewBox="0 0 100 100"><polygon points="50,85 90,15 10,15" stroke-width="8" stroke="currentColor" fill="transparent"/></svg>',
   // Square
-  3: '<svg viewBox="0 0 100 100"><rect x="20" y="20" width="60" height="60" stroke-width="8" stroke="currentColor" fill="transparent"/></svg>',
+  2: '<svg viewBox="0 0 100 100"><rect x="20" y="20" width="60" height="60" stroke-width="8" stroke="currentColor" fill="transparent"/></svg>',
   // Diamond
-  4: '<svg viewBox="0 0 100 100"><polygon points="50,15 85,50 50,85 15,50" stroke-width="8" stroke="currentColor" fill="transparent"/></svg>',
+  3: '<svg viewBox="0 0 100 100"><polygon points="50,15 85,50 50,85 15,50" stroke-width="8" stroke="currentColor" fill="transparent"/></svg>',
   // Pentagon Up
-  5: '<svg viewBox="0 0 100 100"><polygon points="50,15 90,45 75,85 25,85 10,45" stroke-width="8" stroke="currentColor" fill="transparent"/></svg>',
+  4: '<svg viewBox="0 0 100 100"><polygon points="50,15 90,45 75,85 25,85 10,45" stroke-width="8" stroke="currentColor" fill="transparent"/></svg>',
   // Pentagon Down
-  6: '<svg viewBox="0 0 100 100"><polygon points="50,85 90,55 75,15 25,15 10,55" stroke-width="8" stroke="currentColor" fill="transparent"/></svg>'
+  5: '<svg viewBox="0 0 100 100"><polygon points="50,85 90,55 75,15 25,15 10,55" stroke-width="8" stroke="currentColor" fill="transparent"/></svg>'
 };
 
 const DICE_SVGS: { [value: number]: string } = {
@@ -27,16 +28,19 @@ const DICE_SVGS: { [value: number]: string } = {
 
 export function createCardElement(cardInfo: Card): HTMLElement {
   const el = document.createElement('div');
-  el.className = `card type-${cardInfo.type} val-${cardInfo.value}`;
+  const { type, value } = cardInfo;
+  const typeLabel = getTypeLabel(type);
+  const valLabel = getValueLabel(value);
+  el.className = `card type-${typeLabel} val-${valLabel}`;
 
-  if (cardInfo.type === 'E') {
-    el.innerHTML = SHAPE_SVGS[cardInfo.value];
+  if (type === 4) {
+    el.innerHTML = SHAPE_SVGS[value];
     el.classList.add('shape-card');
-  } else if (cardInfo.type === 'D') {
-    el.innerHTML = DICE_SVGS[cardInfo.value];
+  } else if (type === 3) {
+    el.innerHTML = DICE_SVGS[value + 1];
     el.classList.add('dice-card');
   } else {
-    el.textContent = SYMBOL_MAP[cardInfo.type][cardInfo.value];
+    el.textContent = getSymbol(type, value);
   }
 
   return el;

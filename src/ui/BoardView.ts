@@ -1,5 +1,5 @@
 import { Board } from '../engine/Board.js';
-import { ALL_TYPES, CardType } from '../engine/Card.js';
+import { CardType } from '../engine/Card.js';
 import { SquareView } from './SquareView.js';
 
 export class BoardView {
@@ -8,8 +8,7 @@ export class BoardView {
 
   constructor(private board: Board) {
     this.element = document.createDocumentFragment();
-
-    for (const type of ALL_TYPES) {
+    for (let type = 0; type < this.board.numTypes; type++) {
       const row = this.board.squares[type];
       for (const square of row) {
         const squareView = new SquareView(square, board);
@@ -20,8 +19,7 @@ export class BoardView {
   }
 
   public getSquareView(type: CardType, col: number): SquareView | null {
-    const typeIndex = ALL_TYPES.indexOf(type);
-    if (typeIndex === -1) return null;
-    return this.squares[typeIndex * 6 + col] || null;
+    if (type < 0 || type >= this.board.numTypes) return null;
+    return this.squares[type * this.board.numValues + col] || null;
   }
 }

@@ -1,5 +1,6 @@
 import { Observable } from '../misc/observable.js';
-import { CardType, CardValue, ALL_VALUES } from './Card.js';
+import { iota } from '../misc/utils.js';
+import { CardType, CardValue } from './Card.js';
 
 export type SquareEvents = {
   change: [];
@@ -20,10 +21,10 @@ export class Square extends Observable<SquareEvents> {
   constructor(
     public readonly type: CardType,
     public readonly col: number,
-    allValues: CardValue[] = ALL_VALUES
+    numValues: number
   ) {
     super();
-    this.candidates = new Set(allValues);
+    this.candidates = new Set(iota(numValues));
   }
 
   private pendingChange = false;

@@ -20,7 +20,10 @@
     "jsx": "react",
     "jsxFactory": "h",
     "jsxFragmentFactory": "Fragment",
-    "noEmit": true
+    "noEmit": true,
+    "types": [
+      "mocha"
+    ]
   },
   "include": [
     "src/**/*",

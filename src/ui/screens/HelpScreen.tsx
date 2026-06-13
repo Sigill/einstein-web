@@ -2,7 +2,7 @@ import { h } from '../jsx';
 import { Screen } from './ScreenManager';
 import { Board } from '../../engine/Board';
 import { Square } from '../../engine/Square';
-import { CardValue, ALL_TYPES, ALL_VALUES } from '../../engine/Card';
+import { CardValue } from '../../engine/Card';
 import { makeHint } from '../../engine/Hint';
 import { UnderRule, NearRule, DirectionRule, BetweenRule } from '../../engine/Rules';
 import { BoardView } from '../BoardView';
@@ -10,14 +10,14 @@ import { SquareView } from '../SquareView';
 import { createVerticalHintElement, createHorizontalHintElement } from '../HintsView';
 import { VisibilityObservable } from '../../misc/VisibilityObservable';
 import { createActionContentElement } from '../ActionMenu';
+import { iota } from '../../misc/utils';
 
 export function createHelpScreen(onDismiss: () => void): Screen {
   // 1. Solved Board View
   const solvedBoard = Board.create();
-  for (const type of ALL_TYPES) {
-    const typeIdx = ALL_TYPES.indexOf(type);
+  for (let type = 0; type < 6; type++) {
     for (let col = 0; col < 6; col++) {
-      const val = ((col + typeIdx) % 6 + 1) as CardValue;
+      const val: CardValue = ((col + type) % 6);
       solvedBoard.set(solvedBoard.squares[type][col], val);
     }
   }
@@ -26,20 +26,20 @@ export function createHelpScreen(onDismiss: () => void): Screen {
   solvedBoardContainer.appendChild(boardView.element);
 
   // 2. Square Cell View with Candidates (Excluding III)
-  const cellSquare = new Square('C', 0); // C corresponds to Roman numerals
-  cellSquare.candidates.delete(3); // Remove III
+  const cellSquare = new Square(2, 0, 6); // C corresponds to Roman numerals (index 2)
+  cellSquare.candidates.delete(2); // Remove III (zero-based index 2)
   const cellBoard = Board.create();
   const squareView = new SquareView(cellSquare, cellBoard);
   const squareCellContainer = <div className="help-square-wrapper"></div> as HTMLElement;
   squareCellContainer.appendChild(squareView.element);
 
   // 3. Inline Action View (Touch selection menu mockup)
-  const actionSquare = new Square('C', 0);
-  actionSquare.candidates.delete(3);
+  const actionSquare = new Square(2, 0, 6);
+  actionSquare.candidates.delete(2);
   const inlineActionView = createActionContentElement(
     actionSquare,
     2, // selected II
-    ALL_VALUES,
+    iota(6),
     () => { },
     () => { }
   );
@@ -47,7 +47,7 @@ export function createHelpScreen(onDismiss: () => void): Screen {
 
   // 4. Vertical Stacked Hint View
   const vHint = makeHint(
-    new UnderRule({ type: 'C', value: 2 }, { type: 'F', value: 1 }) // II and +
+    new UnderRule({ type: 2, value: 1 }, { type: 5, value: 0 }) // II and +
   );
   const vHintEl = createVerticalHintElement(vHint, new VisibilityObservable());
   const vHintWrapper = <div className="help-hint-wrapper"></div> as HTMLElement;
@@ -55,7 +55,7 @@ export function createHelpScreen(onDismiss: () => void): Screen {
 
   // 5. Horizontal Near Hint View
   const nearHint = makeHint(
-    new NearRule({ type: 'A', value: 1 }, { type: 'C', value: 2 })
+    new NearRule({ type: 0, value: 0 }, { type: 2, value: 1 })
   );
   const nearHintEl = createHorizontalHintElement(nearHint, new VisibilityObservable());
   const nearHintWrapper = <div className="help-hint-wrapper"></div> as HTMLElement;
@@ -63,7 +63,7 @@ export function createHelpScreen(onDismiss: () => void): Screen {
 
   // 6. Horizontal Direction Hint View
   const dirHint = makeHint(
-    new DirectionRule({ type: 'A', value: 3 }, { type: 'E', value: 4 })
+    new DirectionRule({ type: 0, value: 2 }, { type: 4, value: 3 })
   );
   const dirHintEl = createHorizontalHintElement(dirHint, new VisibilityObservable());
   const dirHintWrapper = <div className="help-hint-wrapper"></div> as HTMLElement;
@@ -71,7 +71,7 @@ export function createHelpScreen(onDismiss: () => void): Screen {
 
   // 7. Horizontal Between Hint View
   const betHint = makeHint(
-    new BetweenRule({ type: 'D', value: 1 }, { type: 'B', value: 5 }, { type: 'F', value: 6 })
+    new BetweenRule({ type: 3, value: 0 }, { type: 1, value: 4 }, { type: 5, value: 5 })
   );
   const betHintEl = createHorizontalHintElement(betHint, new VisibilityObservable());
   const betHintWrapper = <div className="help-hint-wrapper"></div> as HTMLElement;

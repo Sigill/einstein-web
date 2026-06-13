@@ -6,7 +6,6 @@ import { generateRandomSolvedPuzzle, printPuzzle, SolvedPuzzle } from './SolvedP
  * Generates a random rule appropriate for the given puzzle's dimensions.
  */
 function genRule(puzzle: SolvedPuzzle): Rule {
-  const numValues = puzzle.values.length;
   const a = Math.floor(Math.random() * 14);
   switch (a) {
     case 0:
@@ -31,8 +30,8 @@ function genRule(puzzle: SolvedPuzzle): Rule {
  * Checks if the puzzle can be solved with the given rules.
  */
 export function canSolve(puzzle: SolvedPuzzle, rules: Rule[]): boolean {
-  const numTypes = puzzle.types.length;
-  const numValues = puzzle.values.length;
+  const numTypes = puzzle.numTypes;
+  const numValues = puzzle.numValues;
   const board = Board.create(numTypes, numValues);
   let changed;
 
