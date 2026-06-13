@@ -53,8 +53,8 @@ export function canSolve(puzzle: SolvedPuzzle, rules: Rule[]): boolean {
 /**
  * Removes rules from the puzzle while maintaining solvability.
  */
-function removeRules(puzzle: SolvedPuzzle, rules: Rule[]) {
-  console.groupCollapsed('Removing rules');
+function removeRules(puzzle: SolvedPuzzle, rules: Rule[], { verbose = false } = {}) {
+  if (verbose) console.groupCollapsed('Removing rules');
   let possible;
 
   do {
@@ -62,13 +62,13 @@ function removeRules(puzzle: SolvedPuzzle, rules: Rule[]) {
     for (let i = 0; i < rules.length; i++) {
       if (canSolve(puzzle, rules.toSpliced(i, 1))) {
         possible = true;
-        console.log(`Removing rule: ${rules[i].getAsText()}`);
+        if (verbose) console.log(`Removing rule: ${rules[i].getAsText()}`);
         rules.splice(i, 1);
         break;
       }
     }
   } while (possible);
-  console.groupEnd();
+  if (verbose) console.groupEnd();
 }
 
 /**
@@ -91,23 +91,29 @@ function generateRules(puzzle: SolvedPuzzle, rules: Rule[]) {
   } while (!rulesDone);
 }
 
-export function generatePuzzle(numTypes = 6, numValues = 6): { puzzle: SolvedPuzzle; rules: Rule[] } {
+export function generatePuzzle(numTypes = 6, numValues = 6, { verbose = false } = {}): { puzzle: SolvedPuzzle; rules: Rule[] } {
   const puzzle: SolvedPuzzle = generateRandomSolvedPuzzle(numTypes, numValues);
 
-  printPuzzle(puzzle);
+  if (verbose) {
+    printPuzzle(puzzle);
+  }
 
   const rules: Rule[] = [];
   generateRules(puzzle, rules);
 
-  console.groupCollapsed(`${rules.length} rules generated`);
-  printRules(rules);
-  console.groupEnd();
+  if (verbose) {
+    console.groupCollapsed(`${rules.length} rules generated`);
+    printRules(rules);
+    console.groupEnd();
+  }
 
-  removeRules(puzzle, rules);
+  removeRules(puzzle, rules, { verbose });
 
-  console.group('Final rules');
-  printRules(rules);
-  console.groupEnd();
+  if (verbose) {
+    console.group('Final rules');
+    printRules(rules);
+    console.groupEnd();
+  }
 
   return { puzzle, rules };
 }
