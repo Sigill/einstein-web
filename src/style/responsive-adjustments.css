@@ -13,6 +13,7 @@
     --usable-width-per-cell: min(calc(var(--usable-width-board-and-buttons)) / 12, calc(var(--usable-height) / 6));
 
     --cell-size: max(35px, var(--usable-width-per-cell));
+    --hint-cell-size: var(--cell-size);
   }
 
   .fullscreen-container {
@@ -58,6 +59,7 @@
     --usable-width-per-cell: calc(var(--usable-width) / 6);
 
     --cell-size: max(35px, var(--usable-width-per-cell));
+    --hint-cell-size: calc(var(--cell-size) * 0.95);
   }
 
   .fullscreen-container {

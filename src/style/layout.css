@@ -1,40 +1,3 @@
-:root {
-  /* This is the padding around the whole game. */
-  --fullscreen-container-padding: 10px;
-
-  /* This is the padding around the board, the buttons and the hints. */
-  --fullscreen-container-item-padding: 10px;
-
-  /*
-   * The board width is 2 * padding + 6 * cell-size + 5 * card-gap.
-   * The horizontal hints width is 2 * padding + 3 * cell-size + 2 * h-hint-h-gap.
-   * The vertical hints width is 2 * padding + 15 * cell-size + 14 * card-gap.
-   * The board, the horizontal hints and the vertical hints have all the same padding.
-   *
-   * The board + horizontal hints therefore have 4 item-padding
-   * Horizontally, that's a total of 15 cells in both cases.
-   * So 5 card-gap + 2 horizontal hint horizontal gaps must equal 14 card gaps.
-   * (2 * padding + 6 * cell-size + 5 * card-gap) + (2 * padding + 9 * cell-size + 2 * h-hint-h-gap) = 2 * padding + 15 * cell-size + 14 * card-gap
-   * 4 * padding + 5 * card-gap + 2 * h-hint-h-gap = 2 * padding + 14 * card-gap
-   * 9 * card-gap - 2 * padding = 2 * h-hint-h-gap
-   */
-
-  --card-gap: 4px;
-  --h-hint-h-gap: 8px;
-
-  /* Those shall to be equal */
-  --usable-width-board-and-h-hints: calc(100lvw - 2 * var(--fullscreen-container-padding) - 4 * var(--fullscreen-container-item-padding) - 5 * var(--card-gap) - 2 * var(--h-hint-h-gap));
-  --usable-width-v-hints: calc(100lvw - 2 * var(--fullscreen-container-padding) - 2 * var(--fullscreen-container-item-padding) - 14 * var(--card-gap));
-
-  --usable-height-v-and-h-hints: calc(100lvh - 2 * var(--fullscreen-container-padding) - 4 * var(--fullscreen-container-item-padding) - 7 * var(--card-gap));
-
-  --usable-width-per-cell: calc(var(--usable-width-v-hints) / 15);
-  --usable-height-v-and-h-hints-per-cell: calc(var(--usable-height-v-and-h-hints) / 10);
-
-  --cell-size: clamp(50px, min(var(--usable-width-per-cell), var(--usable-height-v-and-h-hints-per-cell)), 100px);
-  --mini-size: calc(var(--cell-size) / 3.3);
-}
-
 html,
 body {
   height: 100%;
@@ -49,6 +12,142 @@ body {
   background-color: var(--bg-color);
   color: var(--text-color);
   box-sizing: border-box;
+}
+
+.fullscreen-container[data-puzzle-config="6x6"] {
+  /* This is the padding around the whole game. */
+  --fullscreen-container-padding: 10px;
+
+  /* This is the padding around the board, the buttons and the hints. */
+  --fullscreen-container-item-padding: 10px;
+
+  /* Tunable sizing constraints */
+  --cell-min: 50px;
+  --cell-max: 100px;
+  --mini-ratio: 3.3;
+
+  /* Unit ratios: scale applied to the base unit for board vs hint cells. */
+  --board-cell-ratio: 1;
+  --hint-cell-ratio: 1;
+
+  --card-gap: 4px;
+  --hint-gap: calc(var(--card-gap));
+  --h-hint-h-gap: 8px;
+
+  /* Those shall to be equal */
+  --usable-width-board-and-h-hints: calc(100lvw - 2 * var(--fullscreen-container-padding) - 4 * var(--fullscreen-container-item-padding) - 5 * var(--card-gap) - 2 * var(--h-hint-h-gap));
+  --usable-width-v-hints: calc(100lvw - 2 * var(--fullscreen-container-padding) - 2 * var(--fullscreen-container-item-padding) - 14 * var(--hint-gap));
+
+  --usable-height-v-and-h-hints: calc(100lvh - 2 * var(--fullscreen-container-padding) - 4 * var(--fullscreen-container-item-padding) - 7 * var(--hint-gap));
+
+  /* Base-unit totals for the current layout (6x6 uses 6 board units and 9 hint units horizontally,
+    and 8 + 2 hint units vertically). These expressions will adapt when ratios change. */
+  --horizontal-base-units: calc(6 * var(--board-cell-ratio) + 9 * var(--hint-cell-ratio));
+  --vertical-base-units: calc(8 * var(--hint-cell-ratio) + 2 * var(--hint-cell-ratio));
+
+  /* Usable size per base-unit (the "base cell"). Other sizes derive from this. */
+  --usable-width-per-base-unit: calc(var(--usable-width-v-hints) / var(--horizontal-base-units));
+  --usable-height-per-base-unit: calc(var(--usable-height-v-and-h-hints) / var(--vertical-base-units));
+
+  /* Primary base cell size (clamped between min/max). Concrete board/hint sizes derive from this. */
+  --base-cell-size: clamp(var(--cell-min), min(var(--usable-width-per-base-unit), var(--usable-height-per-base-unit)), var(--cell-max));
+  --mini-size: calc((var(--base-cell-size) * var(--board-cell-ratio)) / var(--mini-ratio));
+
+  /* Derived sizes */
+  --board-cell-size: calc(var(--base-cell-size) * var(--board-cell-ratio));
+  --hint-cell-size: calc(var(--base-cell-size) * var(--hint-cell-ratio));
+}
+
+.fullscreen-container[data-puzzle-config="5x5"] {
+  /* This is the padding around the whole game. */
+  --fullscreen-container-padding: 10px;
+
+  /* This is the padding around the board, the buttons and the hints. */
+  --fullscreen-container-item-padding: 10px;
+
+  /* Tunable sizing constraints */
+  --cell-min: 50px;
+  --cell-max: 100px;
+  --mini-ratio: 3.3;
+
+  /* Unit ratios: scale applied to the base unit for board vs hint cells. */
+  --board-cell-ratio: calc(6/5);
+  --hint-cell-ratio: 1;
+
+  /* 5 times the original card gap, but now we have only three gaps. */
+  --card-gap: 4px;
+  /* Hint gaps are proportionally smaller: 4 board gaps == 5 hint gaps -> hint-gap = 4/5 * card-gap */
+  --hint-gap: calc(var(--card-gap) * 4 / 5);
+  --h-hint-h-gap: 8px;
+
+  /* Those shall to be equal */
+  --usable-width-board-and-h-hints: calc(100lvw - 2 * var(--fullscreen-container-padding) - 4 * var(--fullscreen-container-item-padding) - 5 * var(--card-gap) - 2 * var(--h-hint-h-gap));
+  --usable-width-v-hints: calc(100lvw - 2 * var(--fullscreen-container-padding) - 2 * var(--fullscreen-container-item-padding) - 14 * var(--hint-gap));
+
+  --usable-height-v-and-h-hints: calc(100lvh - 2 * var(--fullscreen-container-padding) - 4 * var(--fullscreen-container-item-padding) - 7 * var(--hint-gap));
+
+  /* Base-unit totals for the current layout (5x5 uses 5 board units and 9 hint units horizontally,
+    and 6 + 2 hint units vertically). These expressions will adapt when ratios change. */
+  --horizontal-base-units: calc(5 * var(--board-cell-ratio) + 9 * var(--hint-cell-ratio));
+  --vertical-base-units: calc(5 * var(--hint-cell-ratio) + 2 * var(--hint-cell-ratio));
+
+  /* Usable size per base-unit (the "base cell"). Other sizes derive from this. */
+  --usable-width-per-base-unit: calc(var(--usable-width-v-hints) / var(--horizontal-base-units));
+  --usable-height-per-base-unit: calc(var(--usable-height-v-and-h-hints) / var(--vertical-base-units));
+
+  /* Primary base cell size (clamped between min/max). Concrete board/hint sizes derive from this. */
+  --base-cell-size: clamp(var(--cell-min), min(var(--usable-width-per-base-unit), var(--usable-height-per-base-unit)), var(--cell-max));
+  --mini-size: calc((var(--base-cell-size) * var(--board-cell-ratio)) / var(--mini-ratio));
+
+  /* Derived sizes */
+  --board-cell-size: calc(var(--base-cell-size) * var(--board-cell-ratio));
+  --hint-cell-size: calc(var(--base-cell-size) * var(--hint-cell-ratio));
+}
+
+.fullscreen-container[data-puzzle-config="4x4"] {
+  /* This is the padding around the whole game. */
+  --fullscreen-container-padding: 10px;
+
+  /* This is the padding around the board, the buttons and the hints. */
+  --fullscreen-container-item-padding: 10px;
+
+  /* Tunable sizing constraints */
+  --cell-min: 50px;
+  --cell-max: 100px;
+  --mini-ratio: 3.3;
+
+  /* Unit ratios: scale applied to the base unit for board vs hint cells. */
+  --board-cell-ratio: 1.5;
+  --hint-cell-ratio: 1;
+
+  /* 5 times the original card gap, but now we have only three gaps. */
+  --card-gap: 4px;
+  /* Hint gaps are proportionally smaller: 3 board gaps == 5 hint gaps -> hint-gap = 3/5 * card-gap */
+  --hint-gap: calc(var(--card-gap) * 3 / 5);
+  --h-hint-h-gap: 8px;
+
+  /* Those shall to be equal */
+  --usable-width-board-and-h-hints: calc(100lvw - 2 * var(--fullscreen-container-padding) - 4 * var(--fullscreen-container-item-padding) - 3 * var(--card-gap) - 1 * var(--h-hint-h-gap));
+  --usable-width-v-hints: calc(100lvw - 2 * var(--fullscreen-container-padding) - 2 * var(--fullscreen-container-item-padding) - 7 * var(--hint-gap));
+
+  --usable-height-v-and-h-hints: calc(100lvh - 2 * var(--fullscreen-container-padding) - 4 * var(--fullscreen-container-item-padding) - 7 * var(--hint-gap));
+
+  /* Base-unit totals for the current layout (4x4 uses 4 board units and 6 hint units horizontally,
+    and 6 + 2 hint units vertically). These expressions will adapt when ratios change. */
+  --horizontal-base-units: calc(4 * var(--board-cell-ratio) + 6 * var(--hint-cell-ratio));
+  --vertical-base-units: calc(6 * var(--hint-cell-ratio) + 2 * var(--hint-cell-ratio)); /* Need to take into account buttons? */
+
+  /* Usable size per base-unit (the "base cell"). Other sizes derive from this. */
+  --usable-width-per-base-unit: calc(var(--usable-width-v-hints) / var(--horizontal-base-units));
+  --usable-height-per-base-unit: calc(var(--usable-height-v-and-h-hints) / var(--vertical-base-units));
+
+  /* Primary base cell size (clamped between min/max). Concrete board/hint sizes derive from this. */
+  --base-cell-size: clamp(var(--cell-min), min(var(--usable-width-per-base-unit), var(--usable-height-per-base-unit)), var(--cell-max));
+  --mini-size: calc((var(--base-cell-size) * var(--board-cell-ratio)) / var(--mini-ratio));
+
+  /* Derived sizes */
+  --board-cell-size: calc(var(--base-cell-size) * var(--board-cell-ratio));
+  --hint-cell-size: calc(var(--base-cell-size) * var(--hint-cell-ratio));
 }
 
 .fullscreen-container {

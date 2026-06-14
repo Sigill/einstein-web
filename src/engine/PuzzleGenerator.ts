@@ -131,14 +131,7 @@ function countHints(rules: Rule[]): { horizontal: number, vertical: number } {
   return { horizontal, vertical };
 }
 
-/**
- * Hint display capacity constants for a standard 6×6 game.
- * These may need adjusting for other board sizes.
- */
-const MAX_HORIZONTAL_HINTS = 24;
-const MAX_VERTICAL_HINTS = 15;
-
-export function generatePuzzleWithAcceptableAmountOfHints(numTypes = 6, numValues = 6) {
+export function generatePuzzleWithAcceptableAmountOfHints({ numTypes, numValues, limits }: { numTypes: number, numValues: number, limits: { horizontal: number, vertical: number } }): { puzzle: SolvedPuzzle; rules: Rule[] } {
   console.group('Generating solvable puzzle');
   do {
     const { puzzle, rules } = generatePuzzle(numTypes, numValues);
@@ -146,7 +139,7 @@ export function generatePuzzleWithAcceptableAmountOfHints(numTypes = 6, numValue
     const hints = countHints(rules);
     console.log(`Puzzle has ${hints.horizontal} horizontal and ${hints.vertical} vertical hints`);
 
-    if (hints.horizontal <= MAX_HORIZONTAL_HINTS && hints.vertical <= MAX_VERTICAL_HINTS) {
+    if (hints.horizontal <= limits.horizontal && hints.vertical <= limits.vertical) {
       console.groupEnd();
       return { puzzle, rules };
     }

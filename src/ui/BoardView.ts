@@ -8,6 +8,7 @@ export class BoardView {
 
   constructor(private board: Board) {
     this.element = document.createDocumentFragment();
+
     for (let type = 0; type < this.board.numTypes; type++) {
       const row = this.board.squares[type];
       for (const square of row) {

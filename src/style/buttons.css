@@ -3,11 +3,9 @@
 
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 4px;
+  gap: var(--card-gap);
 
   border-radius: 12px;
-  /* Match the board width: 6 cells + 5 gaps + 2 board-padding */
-  width: calc(6 * var(--cell-size) + 5 * var(--card-gap) + 2 * var(--fullscreen-container-item-padding));
   padding: var(--fullscreen-container-item-padding);
   box-sizing: border-box;
   justify-self: start;
@@ -19,7 +17,7 @@
     border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 5px 0;
-    font-size: calc(var(--cell-size) * 0.2);
+    font-size: calc(var(--hint-cell-size) * 0.2);
     cursor: pointer;
     transition: background 0.2s;
   }
@@ -34,7 +32,7 @@
     border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 5px 0;
-    font-size: calc(var(--cell-size) * 0.2);
+    font-size: calc(var(--hint-cell-size) * 0.2);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -49,4 +47,20 @@
     border-color: rgba(255, 77, 90, 0.5);
     text-shadow: 0 0 8px rgba(255, 77, 90, 0.5);
   }
+}
+
+[data-puzzle-config="4x4"] #buttons-container {
+  grid-template-columns: repeat(3, 1fr);
+  width: calc(6 * var(--hint-cell-size) + 5 * var(--hint-gap) + 2 * var(--fullscreen-container-item-padding));
+}
+
+[data-puzzle-config="5x5"] #buttons-container {
+  grid-template-columns: repeat(3, 1fr);
+  width: calc(6 * var(--hint-cell-size) + 5 * var(--hint-gap) + 2 * var(--fullscreen-container-item-padding));
+}
+
+[data-puzzle-config="6x6"] #buttons-container {
+  grid-template-columns: repeat(3, 1fr);
+  /* Match the board width: 6 cells + 5 gaps + 2 board-padding */
+  width: calc(6 * var(--hint-cell-size) + 5 * var(--hint-gap) + 2 * var(--fullscreen-container-item-padding));
 }

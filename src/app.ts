@@ -16,6 +16,42 @@ import { createHelpScreen } from './ui/screens/HelpScreen.js';
 import { Timer } from './ui/Timer.js';
 import { ActionMenu } from './ui/ActionMenu.js';
 
+interface Config {
+  numTypes: number; numValues: number;
+  limits: { horizontal: number; vertical: number; };
+  layout: {
+    horizontalHints: { columns: number; rows: number; };
+    verticalHints: { columns: number; };
+  };
+}
+
+const configurations = {
+  '4x4': {
+    numTypes: 4, numValues: 4,
+    limits: { horizontal: 12, vertical: 8 },
+    layout: {
+      horizontalHints: { columns: 2, rows: 6 },
+      verticalHints: { columns: 12 }
+    }
+  },
+  '5x5': {
+    numTypes: 5, numValues: 5,
+    limits: { horizontal: 20, vertical: 10 },
+    layout: {
+      horizontalHints: { columns: 3, rows: 8 },
+      verticalHints: { columns: 15 }
+    }
+  },
+  '6x6': {
+    numTypes: 6, numValues: 6,
+    limits: { horizontal: 24, vertical: 15 },
+    layout: {
+      horizontalHints: { columns: 3, rows: 8 },
+      verticalHints: { columns: 15 }
+    }
+  },
+} satisfies Record<string, Config>;
+
 let board: Board;
 let puzzle: SolvedPuzzle;
 let hints: Hint[];
@@ -24,6 +60,7 @@ let hintToElement: Map<Hint, HTMLElement>;
 let finished = false;
 let hasUsedAssistance = false;
 
+const fullscreenContainer = document.querySelector('.fullscreen-container')!;
 const timerElement = document.getElementById('timer-container')!;
 const boardContainer = document.getElementById('board-container')!;
 const hintsVContainer = document.getElementById('hints-v-container')!;
@@ -67,26 +104,30 @@ document.getElementById('btn-help')!.addEventListener('click', () => {
   screenManager.push(createHelpScreen(() => screenManager.pop()));
 });
 
-function startGame(debugData?: Parameters<typeof generate>[0]) {
+function startGame(debugData?: Parameters<typeof generate>[1]) {
   finished = false;
   hasUsedAssistance = false;
   timer.reset();
   timerElement.classList.remove('assisted');
+
+  const config: Config = configurations['4x4'];
 
   // Clear existing views
   boardContainer.replaceChildren();
   hintsVContainer.replaceChildren();
   hintsHContainer.replaceChildren();
 
-  const generated = generate(debugData);
+  const generated = generate(config, debugData);
   board = generated.board;
   puzzle = generated.puzzle;
   hints = generated.hints;
 
   boardView = new BoardView(board);
+  // Set the fullscreen container attribute so CSS can adapt to the puzzle size
+  fullscreenContainer.setAttribute('data-puzzle-config', `${board.numTypes}x${board.numValues}`);
   boardContainer.appendChild(boardView.element);
 
-  hintToElement = makeHintViews(hints, hintViewVisibility, hintsVContainer, hintsHContainer);
+  hintToElement = makeHintViews(hints, hintViewVisibility, hintsVContainer, hintsHContainer, config);
 
   board.addEventListener('change', () => {
     if (finished) return;
@@ -180,7 +221,7 @@ function logGameState() {
   }, 0);
 }
 
-function generate(debugData?: {
+function generate(config: Config, debugData?: {
   board: CardValue[][][];
   puzzle: SolvedPuzzleJSON;
   hints: { rule: RulesTypes, visible: boolean }[]
@@ -199,8 +240,8 @@ function generate(debugData?: {
 
     return { board, puzzle, hints };
   } else {
-    const board = Board.create();
-    const generated = generatePuzzleWithAcceptableAmountOfHints();
+    const board = Board.create(config.numTypes, config.numValues);
+    const generated = generatePuzzleWithAcceptableAmountOfHints(config);
     const puzzle = generated.puzzle;
     const hints = generated.rules.map(rule => makeHint(rule));
 
@@ -215,6 +256,7 @@ function makeHintViews(
   hintViewVisibility: VisibilityObservable,
   hintsVContainer: HTMLElement,
   hintsHContainer: HTMLElement,
+  config: Config,
 ): Map<Hint, HTMLElement> {
   const hintToElement = new Map<Hint, HTMLElement>();
   let hCount = 0;
@@ -236,14 +278,13 @@ function makeHintViews(
   }
 
   // Create dummy hints to fill the grid.
-
-  for (let i = hCount; i < 24; i++) {
+  for (let i = hCount; i < config.layout.horizontalHints.rows * config.layout.horizontalHints.columns; i++) {
     const el = document.createElement('div');
     el.classList.add('hint', 'horizontal-hint');
     hintsHContainer.appendChild(el);
   }
 
-  for (let i = vCount; i < 15; i++) {
+  for (let i = vCount; i < config.layout.verticalHints.columns; i++) {
     const el = document.createElement('div');
     el.classList.add('hint', 'vertical-hint');
     hintsVContainer.appendChild(el);

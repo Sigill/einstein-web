@@ -46,7 +46,8 @@ export class SquareView {
 
       this.element.classList.add('resolved');
     } else {
-      this.candidatesContainer.style.display = 'grid';
+      // Let CSS handle the layout based on data-puzzle-config
+      this.candidatesContainer.style.display = '';
       this.resolvedContainer.style.display = 'none';
       this.candidatesContainer.innerHTML = '';
 

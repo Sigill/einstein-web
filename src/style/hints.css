@@ -2,8 +2,8 @@
   grid-area: hints-v;
 
   display: grid;
-  grid-template-columns: repeat(15, var(--cell-size));
-  gap: var(--card-gap);
+  grid-template-columns: repeat(15, var(--hint-cell-size));
+  gap: var(--hint-gap);
 
   border-radius: 12px;
   padding: var(--fullscreen-container-item-padding);
@@ -14,15 +14,26 @@
   grid-area: hints-h;
 
   display: grid;
-  grid-template-rows: repeat(8, var(--cell-size));
-  gap: var(--card-gap) var(--h-hint-h-gap);
+  grid-template-rows: repeat(8, var(--hint-cell-size));
+  gap: var(--hint-gap) var(--h-hint-h-gap);
 
   border-radius: 12px;
   padding: var(--fullscreen-container-item-padding);
   grid-auto-flow: column;
 }
 
+[data-puzzle-config="4x4"] {
+  #hints-h-container {
+    grid-template-rows: repeat(6, var(--hint-cell-size));
+  }
+  #hints-v-container {
+    grid-template-columns: repeat(12, var(--hint-cell-size));
+  }
+}
+
 .hint {
+  --cell-size: var(--hint-cell-size);
+
   display: flex;
   background: var(--card-bg);
   border-radius: 8px;
@@ -49,14 +60,14 @@
 
 .vertical-hint {
   flex-direction: column;
-  width: var(--cell-size);
-  height: calc(var(--cell-size) * 2);
+  width: var(--hint-cell-size);
+  height: calc(var(--hint-cell-size) * 2);
 }
 
 .horizontal-hint {
   flex-direction: row;
-  width: calc(var(--cell-size) * 3);
-  height: var(--cell-size);
+  width: calc(var(--hint-cell-size) * 3);
+  height: var(--hint-cell-size);
 }
 
 .hint-indicator {
@@ -64,8 +75,8 @@
   align-items: center;
   justify-content: center;
   color: #ccc;
-  width: calc(var(--cell-size) * 0.9);
-  height: calc(var(--cell-size) * 0.9);
+  width: calc(var(--hint-cell-size) * 0.9);
+  height: calc(var(--hint-cell-size) * 0.9);
 }
 
 @keyframes blink-animation {
@@ -110,7 +121,7 @@
   #hints-h-container {
     grid-auto-flow: row;
     grid-template-rows: unset;
-    grid-template-columns: repeat(2, calc(3 * var(--cell-size)));
+    grid-template-columns: repeat(2, calc(3 * var(--hint-cell-size)));
     padding: 0;
   }
 
@@ -130,7 +141,7 @@
   #hints-h-container {
     grid-auto-flow: row;
     grid-template-rows: unset;
-    grid-template-columns: repeat(2, calc(3 * var(--cell-size)));
+    grid-template-columns: repeat(2, calc(3 * var(--hint-cell-size)));
     padding: 0;
   }
 
