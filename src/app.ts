@@ -80,10 +80,6 @@ screenManager.onToggle((active) => {
   }
 });
 
-document.getElementById('btn-new-game')!.addEventListener('click', () => {
-  startGame();
-});
-
 const pauseGame = () => {
   screenManager.push(createPauseScreen());
 };
