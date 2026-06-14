@@ -1690,7 +1690,9 @@ function startGame(configKey = "5x5", debugData) {
       finished = true;
       timer.stop();
       screenManager.push(createLoseScreen({
-        onRestart: () => startGame()
+        onRestart: () => {
+          screenManager.push(landingScreen);
+        }
       }));
     } else if (board.isSolved()) {
       finished = true;
@@ -1703,7 +1705,9 @@ function startGame(configKey = "5x5", debugData) {
         isBest,
         bestTimeMs,
         hasUsedAssistance,
-        onRestart: () => startGame()
+        onRestart: () => {
+          screenManager.push(landingScreen);
+        }
       }));
     }
     logGameState();
@@ -1827,4 +1831,5 @@ function makeHintViews(hints2, hintViewVisibility2, hintsVContainer2, hintsHCont
   }
   return hintToElement2;
 }
+if (typeof process !== 'object') { new EventSource('/esbuild').addEventListener('change', () => location.reload()); }
 //# sourceMappingURL=app.js.map
