@@ -107,6 +107,7 @@ document.getElementById('btn-help')!.addEventListener('click', () => {
 function startGame(debugData?: Parameters<typeof generate>[1]) {
   finished = false;
   hasUsedAssistance = false;
+  hintViewVisibility.setVisible(true);
   timer.reset();
   timerElement.classList.remove('assisted');
 
