@@ -138,7 +138,9 @@ function startGame(configKey: keyof typeof configurations = '5x5', debugData?: P
       finished = true;
       timer.stop();
       screenManager.push(createLoseScreen({
-        onRestart: () => startGame(),
+        onRestart: () => {
+          screenManager.push(landingScreen);
+        },
       }));
     } else if (board.isSolved()) {
       finished = true;
@@ -151,7 +153,9 @@ function startGame(configKey: keyof typeof configurations = '5x5', debugData?: P
         isBest,
         bestTimeMs,
         hasUsedAssistance,
-        onRestart: () => startGame(),
+        onRestart: () => {
+          screenManager.push(landingScreen);
+        },
       }));
     }
 
