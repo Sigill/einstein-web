@@ -609,6 +609,7 @@ body {
 
 /* src/style/action-menu.css */
 .action-menu-overlay {
+  --cell-size: 35px;
   position: fixed;
   top: 0;
   left: 0;

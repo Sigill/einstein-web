@@ -1483,8 +1483,8 @@ var Timer = class _Timer {
   updateDisplay() {
     this.displayElement.textContent = _Timer.formatTime(this.elapsedTime);
   }
-  saveBestTime(withAssistance) {
-    const key = localstorageKey(withAssistance);
+  saveBestTime(withAssistance, configKey = "") {
+    const key = localstorageKey(withAssistance, configKey);
     const currentBest = localStorage.getItem(key);
     if (!currentBest || this.elapsedTime < parseInt(currentBest, 10)) {
       localStorage.setItem(key, this.elapsedTime.toString());
@@ -1492,14 +1492,15 @@ var Timer = class _Timer {
     }
     return false;
   }
-  getBestTime(withAssistance) {
-    const key = localstorageKey(withAssistance);
+  getBestTime(withAssistance, configKey) {
+    const key = localstorageKey(withAssistance, configKey);
     const best = localStorage.getItem(key);
     return best ? parseInt(best, 10) : null;
   }
 };
-function localstorageKey(withAssistance) {
-  return withAssistance ? "einstein-best-time-assisted" : "einstein-best-time";
+function localstorageKey(withAssistance, configKey) {
+  const base = withAssistance ? "einstein-best-time-assisted" : "einstein-best-time";
+  return configKey ? `${base}-${configKey}` : base;
 }
 
 // src/ui/screens/WinScreen.tsx
@@ -1648,9 +1649,6 @@ screenManager.onToggle((active) => {
     timer.start();
   }
 });
-document.getElementById("btn-new-game").addEventListener("click", () => {
-  startGame();
-});
 var pauseGame = () => {
   screenManager.push(createPauseScreen());
 };
@@ -1698,8 +1696,8 @@ function startGame(configKey = "5x5", debugData) {
       finished = true;
       timer.stop();
       const timeMs = timer.getElapsedTime();
-      const bestTimeMs = timer.getBestTime(hasUsedAssistance);
-      const isBest = timer.saveBestTime(hasUsedAssistance);
+      const bestTimeMs = timer.getBestTime(hasUsedAssistance, configKey);
+      const isBest = timer.saveBestTime(hasUsedAssistance, configKey);
       screenManager.push(createWinScreen({
         timeMs,
         isBest,
@@ -1831,5 +1829,4 @@ function makeHintViews(hints2, hintViewVisibility2, hintsVContainer2, hintsHCont
   }
   return hintToElement2;
 }
-if (typeof process !== 'object') { new EventSource('/esbuild').addEventListener('change', () => location.reload()); }
 //# sourceMappingURL=app.js.map
