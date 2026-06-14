@@ -9,6 +9,7 @@ import { toJSON as serializePuzzle, fromJSON as puzzleFromJSON, SolvedPuzzle, So
 import { CardValue } from './engine/Card.js';
 import { findFirstApplicableHint, findFirstDiff, blinkHint, blinkSquareCandidate } from './ui/HintUtils.js';
 import { ScreenManager } from './ui/screens/ScreenManager.js';
+import { createLandingScreen } from './ui/screens/LandingScreen.js';
 import { createPauseScreen } from './ui/screens/PauseScreen.js';
 import { createWinScreen } from './ui/screens/WinScreen.js';
 import { createLoseScreen } from './ui/screens/LoseScreen.js';
@@ -104,14 +105,14 @@ document.getElementById('btn-help')!.addEventListener('click', () => {
   screenManager.push(createHelpScreen(() => screenManager.pop()));
 });
 
-function startGame(debugData?: Parameters<typeof generate>[1]) {
+function startGame(configKey: keyof typeof configurations = '5x5', debugData?: Parameters<typeof generate>[1]) {
   finished = false;
   hasUsedAssistance = false;
   hintViewVisibility.setVisible(true);
   timer.reset();
   timerElement.classList.remove('assisted');
 
-  const config: Config = configurations['4x4'];
+  const config: Config = configurations[configKey];
 
   // Clear existing views
   boardContainer.replaceChildren();
@@ -167,7 +168,25 @@ function startGame(debugData?: Parameters<typeof generate>[1]) {
   logGameState();
 }
 
-startGame();
+// Show landing screen on load and wait for user to choose a configuration.
+const landingScreen = createLandingScreen(
+  (selected) => {
+    screenManager.pop();
+    startGame(selected as keyof typeof configurations);
+  },
+  () => {
+    screenManager.push(createHelpScreen(() => screenManager.pop()));
+  },
+);
+
+screenManager.push(landingScreen);
+
+document.getElementById('btn-exit')!.addEventListener('click', () => {
+  // mark game finished and stop timer; landing screen will be shown on top
+  finished = true;
+  timer.stop();
+  screenManager.push(landingScreen);
+});
 
 document.getElementById('btn-reveal-hint')!.addEventListener('click', () => {
   hasUsedAssistance = true;

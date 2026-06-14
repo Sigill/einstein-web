@@ -137,8 +137,9 @@
 }
 
 .help-board-wrapper {
-  --cell-size: 36px;
-  padding: 6px;
+  --board-cell-size: 36px;
+  --card-gap: 3px;
+  --fullscreen-container-item-padding: 6px;
 }
 
 .help-square-wrapper {
