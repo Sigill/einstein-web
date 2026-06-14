@@ -21,25 +21,36 @@ var Observable = class {
   }
 };
 
-// src/engine/Card.ts
-var ALL_TYPES = ["A", "B", "C", "D", "E", "F"];
-var ALL_VALUES = [1, 2, 3, 4, 5, 6];
-function sameCard(card1, card2) {
-  return card1.type === card2.type && card1.value === card2.value;
+// src/misc/utils.ts
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
+function randomInt(maxExclusive) {
+  return Math.floor(Math.random() * maxExclusive);
+}
+function iota(n) {
+  const values = [];
+  for (let i = 0; i < n; i++) {
+    values.push(i);
+  }
+  return values;
 }
 
 // src/engine/Square.ts
 var Square = class extends Observable {
-  constructor(type, col, candidates = new Set(ALL_VALUES)) {
+  constructor(type, col, numValues) {
     super();
     this.type = type;
     this.col = col;
-    this.candidates = candidates;
+    this.candidates = new Set(iota(numValues));
   }
   type;
   col;
-  candidates;
   value = null;
+  candidates;
   pendingChange = false;
   pendingResolved = null;
   // Internal mutations for the board
@@ -80,17 +91,25 @@ var Square = class extends Observable {
 
 // src/engine/Board.ts
 var Board = class _Board extends Observable {
+  numTypes;
+  numValues;
+  /** Squares keyed by numeric type index (0..numTypes-1). */
   squares;
   isBatching = false;
   modifiedSquares = /* @__PURE__ */ new Set();
-  static create() {
-    return new _Board();
+  /** Creates a fresh board of the given dimensions (defaults to 6×6). */
+  static create(numTypes = 6, numValues = 6) {
+    return new _Board(numTypes, numValues);
   }
-  static fromJSON(json) {
-    const board2 = new _Board();
-    for (let i = 0; i < ALL_TYPES.length; i++) {
-      for (let j = 0; j < 6; j++) {
-        const square = board2.squares[ALL_TYPES[i]][j];
+  /**
+   * Reconstructs a Board from a serialized candidates array produced by `toJSON()`.
+   * `numTypes` and `numValues` must match the originating board's dimensions.
+   */
+  static fromJSON(json, numTypes, numValues) {
+    const board2 = new _Board(numTypes, numValues);
+    for (let i = 0; i < numTypes; i++) {
+      for (let j = 0; j < numValues; j++) {
+        const square = board2.squares[i][j];
         square.candidates.clear();
         for (const value of json[i][j]) {
           square.candidates.add(value);
@@ -104,13 +123,15 @@ var Board = class _Board extends Observable {
     }
     return board2;
   }
-  constructor() {
+  constructor(numTypes, numValues) {
     super();
+    this.numTypes = numTypes;
+    this.numValues = numValues;
     this.squares = {};
-    for (const type of ALL_TYPES) {
+    for (let type = 0; type < this.numTypes; type++) {
       this.squares[type] = [];
-      for (let col = 0; col < 6; col++) {
-        this.squares[type].push(new Square(type, col));
+      for (let col = 0; col < this.numValues; col++) {
+        this.squares[type].push(new Square(type, col, this.numValues));
       }
     }
   }
@@ -154,7 +175,7 @@ var Board = class _Board extends Observable {
     return this.squares[type][col].value;
   }
   isSolved() {
-    for (const type of ALL_TYPES) {
+    for (let type = 0; type < this.numTypes; type++) {
       for (const square of this.squares[type]) {
         if (!square.isResolved()) return false;
       }
@@ -162,9 +183,9 @@ var Board = class _Board extends Observable {
     return true;
   }
   isValid(puzzle2) {
-    for (const type of ALL_TYPES) {
-      for (let col = 0; col < 6; col++) {
-        if (!this.squares[type][col].candidates.has(puzzle2[type][col])) {
+    for (let t = 0; t < this.numTypes; t++) {
+      for (let col = 0; col < this.numValues; col++) {
+        if (!this.squares[t][col].candidates.has(puzzle2.grid[t][col])) {
           return false;
         }
       }
@@ -172,30 +193,32 @@ var Board = class _Board extends Observable {
     return true;
   }
   /**
-   * Scans the row for columns that have only one candidate, or values that have only one column.
+   * Scans a row for columns that have only one candidate, or values that have only one column,
+   * then validates those squares. Repeats until no more deductions can be made.
+   *
+   * Card values are always 1-based (1..numValues), so `val - 1` is used as a 0-based index.
    */
   checkSingles(type) {
     const row = this.squares[type];
-    const cellsCnt = [0, 0, 0, 0, 0, 0];
-    const elsCnt = [0, 0, 0, 0, 0, 0];
-    const lastValInCell = [0, 0, 0, 0, 0, 0];
-    const lastCellForVal = [0, 0, 0, 0, 0, 0];
-    for (let col = 0; col < 6; col++) {
+    const cellsCnt = new Array(this.numValues).fill(0);
+    const elsCnt = new Array(this.numValues).fill(0);
+    const lastValInCell = new Array(this.numValues).fill(0);
+    const lastCellForVal = new Array(this.numValues).fill(0);
+    for (let col = 0; col < this.numValues; col++) {
       const square = row[col];
       for (const val of square.candidates) {
-        const valIdx = val - 1;
-        elsCnt[valIdx]++;
-        lastCellForVal[valIdx] = col;
+        elsCnt[val]++;
+        lastCellForVal[val] = col;
         cellsCnt[col]++;
         lastValInCell[col] = val;
       }
     }
     let changed = false;
-    for (let col = 0; col < 6; col++) {
+    for (let col = 0; col < this.numValues; col++) {
       if (cellsCnt[col] === 1) {
         const val = lastValInCell[col];
-        if (elsCnt[val - 1] !== 1) {
-          for (let i = 0; i < 6; i++) {
+        if (elsCnt[val] !== 1) {
+          for (let i = 0; i < this.numValues; i++) {
             if (i !== col) {
               if (row[i]._exclude(val)) {
                 this.modifiedSquares.add(row[i]);
@@ -211,10 +234,9 @@ var Board = class _Board extends Observable {
         }
       }
     }
-    for (let valIdx = 0; valIdx < 6; valIdx++) {
-      if (elsCnt[valIdx] === 1) {
-        const col = lastCellForVal[valIdx];
-        const val = valIdx + 1;
+    for (let val = 0; val < this.numValues; val++) {
+      if (elsCnt[val] === 1) {
+        const col = lastCellForVal[val];
         if (cellsCnt[col] !== 1) {
           for (const cand of Array.from(row[col].candidates)) {
             if (cand !== val) {
@@ -272,11 +294,11 @@ var Board = class _Board extends Observable {
     }
   }
   toJSON() {
-    return ALL_TYPES.map((type) => this.squares[type].map((square) => Array.from(square.candidates)));
+    return Array.from({ length: this.numTypes }, (_, t) => this.squares[t].map((square) => Array.from(square.candidates)));
   }
 };
 
-// src/ui/VisibilityObservable.ts
+// src/misc/VisibilityObservable.ts
 var VisibilityObservable = class extends Observable {
   isVisible = true;
   constructor(visible = true) {
@@ -303,30 +325,46 @@ function makeHint(rule, visible = true) {
   };
 }
 
+// src/engine/Card.ts
+function getTypeLabel(idx) {
+  return String.fromCharCode(65 + idx);
+}
+function getValueLabel(idx) {
+  return `${idx + 1}`;
+}
+function sameCard(card1, card2) {
+  return card1.type === card2.type && card1.value === card2.value;
+}
+
 // src/misc/symbols.ts
-var SYMBOL_MAP = {
-  A: { 1: "1", 2: "2", 3: "3", 4: "4", 5: "5", 6: "6" },
-  B: { 1: "A", 2: "B", 3: "C", 4: "D", 5: "E", 6: "F" },
-  C: { 1: "I", 2: "II", 3: "III", 4: "IV", 5: "V", 6: "VI" },
-  D: { 1: "\u2680", 2: "\u2681", 3: "\u2682", 4: "\u2683", 5: "\u2684", 6: "\u2685" },
-  E: { 1: "\u2BC5", 2: "\u2BC6", 3: "\u25A0", 4: "\u25C6", 5: "\u2B1F", 6: "\u2BC2" },
-  F: { 1: "+", 2: "-", 3: "\xF7", 4: "\xD7", 5: "=", 6: "\u221A" }
-};
+var SYMBOLS_BY_TYPE = [
+  ["1", "2", "3", "4", "5", "6"],
+  ["A", "B", "C", "D", "E", "F"],
+  ["I", "II", "III", "IV", "V", "VI"],
+  ["\u2680", "\u2681", "\u2682", "\u2683", "\u2684", "\u2685"],
+  ["\u2BC5", "\u2BC6", "\u25A0", "\u25C6", "\u2B1F", "\u2BC2"],
+  ["+", "-", "\xF7", "\xD7", "=", "\u221A"]
+];
+function getSymbol(type, value) {
+  if (type < 0 || type >= SYMBOLS_BY_TYPE.length) return getValueLabel(value);
+  const row = SYMBOLS_BY_TYPE[type];
+  return row[value] ?? getValueLabel(value);
+}
 
 // src/ui/CardView.ts
 var SHAPE_SVGS = {
   // Triangle Up
-  1: '<svg viewBox="0 0 100 100"><polygon points="50,15 90,85 10,85" stroke-width="8" stroke="currentColor" fill="transparent"/></svg>',
+  0: '<svg viewBox="0 0 100 100"><polygon points="50,15 90,85 10,85" stroke-width="8" stroke="currentColor" fill="transparent"/></svg>',
   // Triangle Down
-  2: '<svg viewBox="0 0 100 100"><polygon points="50,85 90,15 10,15" stroke-width="8" stroke="currentColor" fill="transparent"/></svg>',
+  1: '<svg viewBox="0 0 100 100"><polygon points="50,85 90,15 10,15" stroke-width="8" stroke="currentColor" fill="transparent"/></svg>',
   // Square
-  3: '<svg viewBox="0 0 100 100"><rect x="20" y="20" width="60" height="60" stroke-width="8" stroke="currentColor" fill="transparent"/></svg>',
+  2: '<svg viewBox="0 0 100 100"><rect x="20" y="20" width="60" height="60" stroke-width="8" stroke="currentColor" fill="transparent"/></svg>',
   // Diamond
-  4: '<svg viewBox="0 0 100 100"><polygon points="50,15 85,50 50,85 15,50" stroke-width="8" stroke="currentColor" fill="transparent"/></svg>',
+  3: '<svg viewBox="0 0 100 100"><polygon points="50,15 85,50 50,85 15,50" stroke-width="8" stroke="currentColor" fill="transparent"/></svg>',
   // Pentagon Up
-  5: '<svg viewBox="0 0 100 100"><polygon points="50,15 90,45 75,85 25,85 10,45" stroke-width="8" stroke="currentColor" fill="transparent"/></svg>',
+  4: '<svg viewBox="0 0 100 100"><polygon points="50,15 90,45 75,85 25,85 10,45" stroke-width="8" stroke="currentColor" fill="transparent"/></svg>',
   // Pentagon Down
-  6: '<svg viewBox="0 0 100 100"><polygon points="50,85 90,55 75,15 25,15 10,55" stroke-width="8" stroke="currentColor" fill="transparent"/></svg>'
+  5: '<svg viewBox="0 0 100 100"><polygon points="50,85 90,55 75,15 25,15 10,55" stroke-width="8" stroke="currentColor" fill="transparent"/></svg>'
 };
 var DICE_SVGS = {
   1: '<svg viewBox="0 0 100 100"><rect x="10" y="10" width="80" height="80" rx="12" fill="none" stroke="currentColor" stroke-width="5"/><circle cx="50" cy="50" r="10" fill="currentColor"/></svg>',
@@ -338,15 +376,18 @@ var DICE_SVGS = {
 };
 function createCardElement(cardInfo) {
   const el = document.createElement("div");
-  el.className = `card type-${cardInfo.type} val-${cardInfo.value}`;
-  if (cardInfo.type === "E") {
-    el.innerHTML = SHAPE_SVGS[cardInfo.value];
+  const { type, value } = cardInfo;
+  const typeLabel = getTypeLabel(type);
+  const valLabel = getValueLabel(value);
+  el.className = `card type-${typeLabel} val-${valLabel}`;
+  if (type === 4) {
+    el.innerHTML = SHAPE_SVGS[value];
     el.classList.add("shape-card");
-  } else if (cardInfo.type === "D") {
-    el.innerHTML = DICE_SVGS[cardInfo.value];
+  } else if (type === 3) {
+    el.innerHTML = DICE_SVGS[value + 1];
     el.classList.add("dice-card");
   } else {
-    el.textContent = SYMBOL_MAP[cardInfo.type][cardInfo.value];
+    el.textContent = getSymbol(type, value);
   }
   return el;
 }
@@ -358,10 +399,11 @@ var ICONS = {
   CANCEL: '<svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>'
 };
 var ActionMenu = class _ActionMenu {
-  constructor(square, selectedVal, onValidate, onExclude, onCancel = () => {
+  constructor(square, selectedVal, values, onValidate, onExclude, onCancel = () => {
   }) {
     this.square = square;
     this.selectedVal = selectedVal;
+    this.values = values;
     this.onValidate = onValidate;
     this.onExclude = onExclude;
     this.onCancel = onCancel;
@@ -376,6 +418,7 @@ var ActionMenu = class _ActionMenu {
     const content = createActionContentElement(
       square,
       selectedVal,
+      values,
       (val) => {
         this.onValidate(val);
         this.close();
@@ -393,6 +436,7 @@ var ActionMenu = class _ActionMenu {
   }
   square;
   selectedVal;
+  values;
   onValidate;
   onExclude;
   onCancel;
@@ -427,7 +471,7 @@ var ActionMenu = class _ActionMenu {
     }, 300);
   }
 };
-function createActionContentElement(square, selectedVal, onValidate, onExclude, onCancel = () => {
+function createActionContentElement(square, selectedVal, values, onValidate, onExclude, onCancel = () => {
 }) {
   const content = document.createElement("div");
   content.className = "action-menu-content";
@@ -436,20 +480,20 @@ function createActionContentElement(square, selectedVal, onValidate, onExclude, 
   const miniCardContainers = [];
   const selectCard = (val) => {
     if (val === selectedVal) return;
-    const prevContainer = miniCardContainers[selectedVal - 1];
+    const prevContainer = miniCardContainers[selectedVal];
     if (prevContainer) {
       prevContainer.classList.remove("selected");
     }
     selectedVal = val;
-    const newContainer = miniCardContainers[selectedVal - 1];
+    const newContainer = miniCardContainers[selectedVal];
     if (newContainer) {
       newContainer.classList.add("selected");
     }
   };
-  for (const val of ALL_VALUES) {
+  for (const val of values) {
     const container = document.createElement("div");
     container.className = "action-menu-mini-card-container";
-    miniCardContainers[val - 1] = container;
+    miniCardContainers[val] = container;
     if (square.candidates.has(val)) {
       const cardEl = createCardElement({ type: square.type, value: val });
       cardEl.classList.add("large");
@@ -500,7 +544,8 @@ var SquareView = class {
     this.square = square;
     this.board = board2;
     this.element = document.createElement("div");
-    this.element.className = `square-cell type-${square.type}`;
+    const typeLabel = getTypeLabel(square.type);
+    this.element.className = `square-cell type-${typeLabel}`;
     this.candidatesContainer = document.createElement("div");
     this.candidatesContainer.className = "candidates-grid";
     this.resolvedContainer = document.createElement("div");
@@ -528,14 +573,14 @@ var SquareView = class {
       this.resolvedContainer.appendChild(cardEl);
       this.element.classList.add("resolved");
     } else {
-      this.candidatesContainer.style.display = "grid";
+      this.candidatesContainer.style.display = "";
       this.resolvedContainer.style.display = "none";
       this.candidatesContainer.innerHTML = "";
       this.element.classList.remove("resolved");
-      for (const val of ALL_VALUES) {
+      for (let val = 0; val < this.board.numValues; val++) {
         const miniCardContainer = document.createElement("div");
         miniCardContainer.className = "mini-card-container";
-        this.miniCardElements[val - 1] = miniCardContainer;
+        this.miniCardElements[val] = miniCardContainer;
         if (this.square.candidates.has(val)) {
           const cardEl = createCardElement({ type: this.square.type, value: val });
           cardEl.classList.add("mini");
@@ -544,9 +589,11 @@ var SquareView = class {
             const isTouch = e.pointerType === "touch" || window.matchMedia("(pointer: coarse)").matches && e.pointerType !== "mouse";
             if (isTouch) {
               e.preventDefault();
+              const values = Array.from({ length: this.board.numValues }, (_, i) => i);
               const menu = new ActionMenu(
                 this.square,
                 val,
+                values,
                 (selectedVal) => this.board.set(this.square, selectedVal),
                 (selectedVal) => this.board.exclude(this.square, selectedVal)
               );
@@ -572,7 +619,7 @@ var SquareView = class {
     if (this.square.isResolved()) {
       return this.resolvedContainer.querySelector(".card");
     }
-    return this.miniCardElements[val - 1] || null;
+    return this.miniCardElements[val] || null;
   }
 };
 
@@ -581,7 +628,7 @@ var BoardView = class {
   constructor(board2) {
     this.board = board2;
     this.element = document.createDocumentFragment();
-    for (const type of ALL_TYPES) {
+    for (let type = 0; type < this.board.numTypes; type++) {
       const row = this.board.squares[type];
       for (const square of row) {
         const squareView = new SquareView(square, board2);
@@ -594,27 +641,12 @@ var BoardView = class {
   element;
   squares = [];
   getSquareView(type, col) {
-    const typeIndex = ALL_TYPES.indexOf(type);
-    if (typeIndex === -1) return null;
-    return this.squares[typeIndex * 6 + col] || null;
+    if (type < 0 || type >= this.board.numTypes) return null;
+    return this.squares[type * this.board.numValues + col] || null;
   }
 };
 
-// src/misc/utils.ts
-function shuffleArray(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-}
-function randomInt(maxExclusive) {
-  return Math.floor(Math.random() * maxExclusive);
-}
-
 // src/engine/Rules.ts
-function randomType() {
-  return ALL_TYPES[randomInt(6)];
-}
 var Rule = class {
 };
 var NearRule = class _NearRule extends Rule {
@@ -626,20 +658,22 @@ var NearRule = class _NearRule extends Rule {
     this.card2 = card2;
   }
   static FromSolvedPuzzle(puzzle2) {
-    const col1 = randomInt(6);
-    const type1 = randomType();
-    const val1 = puzzle2[type1][col1];
+    const { grid, numTypes, numValues } = puzzle2;
+    const col1 = randomInt(numValues);
+    const type1 = randomInt(numTypes);
+    const val1 = grid[type1][col1];
+    const maxCol = numValues - 1;
     let col2;
     if (col1 === 0) col2 = 1;
-    else if (col1 === 5) col2 = 4;
+    else if (col1 === maxCol) col2 = maxCol - 1;
     else col2 = randomInt(2) ? col1 + 1 : col1 - 1;
-    const type2 = randomType();
-    const val2 = puzzle2[type2][col2];
+    const type2 = randomInt(numTypes);
+    const val2 = grid[type2][col2];
     return new _NearRule({ type: type1, value: val1 }, { type: type2, value: val2 });
   }
   applyToCol(board2, col, nearCard, thisCard) {
     const hasLeft = col === 0 ? false : board2.isPossible(col - 1, nearCard);
-    const hasRight = col === 5 ? false : board2.isPossible(col + 1, nearCard);
+    const hasRight = col === board2.numValues - 1 ? false : board2.isPossible(col + 1, nearCard);
     if (!hasRight && !hasLeft && board2.isPossible(col, thisCard)) {
       board2.excludeAt(col, thisCard);
       return true;
@@ -648,7 +682,7 @@ var NearRule = class _NearRule extends Rule {
   }
   apply(board2) {
     let changed = false;
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < board2.numValues; i++) {
       if (this.applyToCol(board2, i, this.card1, this.card2)) changed = true;
       if (this.applyToCol(board2, i, this.card2, this.card1)) changed = true;
     }
@@ -658,7 +692,7 @@ var NearRule = class _NearRule extends Rule {
     return changed;
   }
   getAsText() {
-    return `${this.card1.type}${this.card1.value} is near to ${this.card2.type}${this.card2.value}`;
+    return `${getTypeLabel(this.card1.type)}${getValueLabel(this.card1.value)} is near to ${getTypeLabel(this.card2.type)}${getValueLabel(this.card2.value)}`;
   }
   hasCard(card) {
     return sameCard(this.card1, card) || sameCard(this.card2, card);
@@ -680,17 +714,21 @@ var DirectionRule = class _DirectionRule extends Rule {
     this.card2 = card2;
   }
   static FromSolvedPuzzle(puzzle2) {
-    const row1 = randomType();
-    const row2 = randomType();
-    const col1 = randomInt(5);
-    const col2 = randomInt(5 - col1) + col1 + 1;
-    const val1 = puzzle2[row1][col1];
-    const val2 = puzzle2[row2][col2];
-    return new _DirectionRule({ type: row1, value: val1 }, { type: row2, value: val2 });
+    const { grid, numTypes, numValues } = puzzle2;
+    const type1 = randomInt(numTypes);
+    const type2 = randomInt(numTypes);
+    const col1 = randomInt(numValues - 1);
+    const col2 = randomInt(numValues - 1 - col1) + col1 + 1;
+    const val1 = grid[type1][col1];
+    const val2 = grid[type2][col2];
+    return new _DirectionRule(
+      { type: type1, value: val1 },
+      { type: type2, value: val2 }
+    );
   }
   apply(board2) {
     let changed = false;
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < board2.numValues; i++) {
       if (board2.isPossible(i, this.card2)) {
         board2.excludeAt(i, this.card2);
         changed = true;
@@ -699,7 +737,7 @@ var DirectionRule = class _DirectionRule extends Rule {
         break;
       }
     }
-    for (let i = 5; i >= 0; i--) {
+    for (let i = board2.numValues - 1; i >= 0; i--) {
       if (board2.isPossible(i, this.card1)) {
         board2.excludeAt(i, this.card1);
         changed = true;
@@ -711,7 +749,7 @@ var DirectionRule = class _DirectionRule extends Rule {
     return changed;
   }
   getAsText() {
-    return `${this.card1.type}${this.card1.value} is from the left of ${this.card2.type}${this.card2.value}`;
+    return `${getTypeLabel(this.card1.type)}${getValueLabel(this.card1.value)} is from the left of ${getTypeLabel(this.card2.type)}${getValueLabel(this.card2.value)}`;
   }
   hasCard(card) {
     return sameCard(this.card1, card) || sameCard(this.card2, card);
@@ -736,10 +774,11 @@ var OpenRule = class _OpenRule extends Rule {
     this.col = col;
   }
   static FromSolvedPuzzle(puzzle2) {
-    const col = randomInt(6);
-    const row = randomType();
-    const val = puzzle2[row][col];
-    return new _OpenRule({ type: row, value: val }, col);
+    const { grid, numTypes, numValues } = puzzle2;
+    const col = randomInt(numValues);
+    const type = randomInt(numTypes);
+    const val = grid[type][col];
+    return new _OpenRule({ type, value: val }, col);
   }
   apply(board2) {
     if (!board2.isDefined(this.col, this.card.type)) {
@@ -749,7 +788,7 @@ var OpenRule = class _OpenRule extends Rule {
     return false;
   }
   getAsText() {
-    return `${this.card.type}${this.card.value} is at column ${this.col + 1}`;
+    return `${getTypeLabel(this.card.type)}${getValueLabel(this.card.value)} is at column ${this.col + 1}`;
   }
   hasCard(card) {
     return sameCard(this.card, card);
@@ -774,19 +813,23 @@ var UnderRule = class _UnderRule extends Rule {
     this.card2 = card2;
   }
   static FromSolvedPuzzle(puzzle2) {
-    const col = randomInt(6);
-    const row1 = randomType();
-    const val1 = puzzle2[row1][col];
-    let row2;
+    const { grid, numTypes, numValues } = puzzle2;
+    const col = randomInt(numValues);
+    const type1 = randomInt(numTypes);
+    const val1 = grid[type1][col];
+    let type2;
     do {
-      row2 = randomType();
-    } while (row2 === row1);
-    const val2 = puzzle2[row2][col];
-    return new _UnderRule({ type: row1, value: val1 }, { type: row2, value: val2 });
+      type2 = randomInt(numTypes);
+    } while (type2 === type1);
+    const val2 = grid[type2][col];
+    return new _UnderRule(
+      { type: type1, value: val1 },
+      { type: type2, value: val2 }
+    );
   }
   apply(board2) {
     let changed = false;
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < board2.numValues; i++) {
       if (!board2.isPossible(i, this.card1) && board2.isPossible(i, this.card2)) {
         board2.excludeAt(i, this.card2);
         changed = true;
@@ -799,7 +842,7 @@ var UnderRule = class _UnderRule extends Rule {
     return changed;
   }
   getAsText() {
-    return `${this.card1.type}${this.card1.value} is the same column as ${this.card2.type}${this.card2.value}`;
+    return `${getTypeLabel(this.card1.type)}${getValueLabel(this.card1.value)} is the same column as ${getTypeLabel(this.card2.type)}${getValueLabel(this.card2.value)}`;
   }
   hasCard(card) {
     return sameCard(this.card1, card) || sameCard(this.card2, card);
@@ -826,19 +869,20 @@ var BetweenRule = class _BetweenRule extends Rule {
     this.centerCard = centerCard;
   }
   static FromSolvedPuzzle(puzzle2) {
-    const centerType = randomType();
-    const type1 = randomType();
-    const type2 = randomType();
-    const centerCol = randomInt(4) + 1;
-    const centerCard = { type: centerType, value: puzzle2[centerType][centerCol] };
+    const { grid, numTypes, numValues } = puzzle2;
+    const centertype = randomInt(numTypes);
+    const type1 = randomInt(numTypes);
+    const type2 = randomInt(numTypes);
+    const centerCol = randomInt(numValues - 2) + 1;
+    const centerCard = { type: centertype, value: grid[centertype][centerCol] };
     let card1;
     let card2;
     if (randomInt(2)) {
-      card1 = { type: type1, value: puzzle2[type1][centerCol - 1] };
-      card2 = { type: type2, value: puzzle2[type2][centerCol + 1] };
+      card1 = { type: type1, value: grid[type1][centerCol - 1] };
+      card2 = { type: type2, value: grid[type2][centerCol + 1] };
     } else {
-      card1 = { type: type1, value: puzzle2[type1][centerCol + 1] };
-      card2 = { type: type2, value: puzzle2[type2][centerCol - 1] };
+      card1 = { type: type1, value: grid[type1][centerCol + 1] };
+      card2 = { type: type2, value: grid[type2][centerCol - 1] };
     }
     return new _BetweenRule(card1, card2, centerCard);
   }
@@ -848,14 +892,14 @@ var BetweenRule = class _BetweenRule extends Rule {
       changed = true;
       board2.excludeAt(0, this.centerCard);
     }
-    if (board2.isPossible(5, this.centerCard)) {
+    if (board2.isPossible(board2.numValues - 1, this.centerCard)) {
       changed = true;
-      board2.excludeAt(5, this.centerCard);
+      board2.excludeAt(board2.numValues - 1, this.centerCard);
     }
     let goodLoop;
     do {
       goodLoop = false;
-      for (let i = 1; i < 5; i++) {
+      for (let i = 1; i < board2.numValues - 1; i++) {
         if (board2.isPossible(i, this.centerCard)) {
           const conditionA = board2.isPossible(i - 1, this.card1) && board2.isPossible(i + 1, this.card2);
           const conditionB = board2.isPossible(i - 1, this.card2) && board2.isPossible(i + 1, this.card1);
@@ -865,20 +909,22 @@ var BetweenRule = class _BetweenRule extends Rule {
           }
         }
       }
-      for (let i = 0; i < 6; i++) {
+      for (let i = 0; i < board2.numValues; i++) {
         let leftPossible = false;
         let rightPossible = false;
         if (board2.isPossible(i, this.card2)) {
           if (i >= 2) leftPossible = board2.isPossible(i - 1, this.centerCard) && board2.isPossible(i - 2, this.card1);
-          if (i < 4) rightPossible = board2.isPossible(i + 1, this.centerCard) && board2.isPossible(i + 2, this.card1);
+          if (i < board2.numValues - 2) rightPossible = board2.isPossible(i + 1, this.centerCard) && board2.isPossible(i + 2, this.card1);
           if (!leftPossible && !rightPossible) {
             board2.excludeAt(i, this.card2);
             goodLoop = true;
           }
         }
         if (board2.isPossible(i, this.card1)) {
+          leftPossible = false;
+          rightPossible = false;
           if (i >= 2) leftPossible = board2.isPossible(i - 1, this.centerCard) && board2.isPossible(i - 2, this.card2);
-          if (i < 4) rightPossible = board2.isPossible(i + 1, this.centerCard) && board2.isPossible(i + 2, this.card2);
+          if (i < board2.numValues - 2) rightPossible = board2.isPossible(i + 1, this.centerCard) && board2.isPossible(i + 2, this.card2);
           if (!leftPossible && !rightPossible) {
             board2.excludeAt(i, this.card1);
             goodLoop = true;
@@ -892,7 +938,7 @@ var BetweenRule = class _BetweenRule extends Rule {
     return changed;
   }
   getAsText() {
-    return `${this.centerCard.type}${this.centerCard.value} is between ${this.card1.type}${this.card1.value} and ${this.card2.type}${this.card2.value}`;
+    return `${getTypeLabel(this.centerCard.type)}${getValueLabel(this.centerCard.value)} is between ${getTypeLabel(this.card1.type)}${getValueLabel(this.card1.value)} and ${getTypeLabel(this.card2.type)}${getValueLabel(this.card2.value)}`;
   }
   hasCard(card) {
     return sameCard(this.card1, card) || sameCard(this.card2, card) || sameCard(this.centerCard, card);
@@ -1015,28 +1061,26 @@ function createIndicatorElement(indicator) {
 
 // src/engine/SolvedPuzzle.ts
 function printPuzzle(puzzle2) {
-  for (const type of ALL_TYPES) {
-    console.log(`${type}: ${puzzle2[type].join(", ")}`);
+  for (let i = 0; i < puzzle2.numTypes; i++) {
+    const labels = puzzle2.grid[i].map((v) => getValueLabel(v));
+    const typeLabel = getTypeLabel(i);
+    console.log(`${typeLabel}: ${labels.join(", ")}`);
   }
 }
-function generateRandomSolvedPuzzle() {
-  const puzzle2 = {};
-  for (const type of ALL_TYPES) {
-    const row = [...ALL_VALUES];
+function generateRandomSolvedPuzzle(numTypes = 6, numValues = 6) {
+  const values = iota(numValues);
+  const grid = Array.from({ length: numTypes }, () => {
+    const row = [...values];
     shuffleArray(row);
-    puzzle2[type] = row;
-  }
-  return puzzle2;
+    return row;
+  });
+  return { numTypes, numValues, grid };
 }
 function toJSON(puzzle2) {
-  return ALL_TYPES.map((type) => puzzle2[type]);
+  return { numTypes: puzzle2.numTypes, numValues: puzzle2.numValues, grid: puzzle2.grid };
 }
 function fromJSON(json) {
-  const puzzle2 = {};
-  for (let i = 0; i < ALL_TYPES.length; i++) {
-    puzzle2[ALL_TYPES[i]] = json[i];
-  }
-  return puzzle2;
+  return { numTypes: json.numTypes, numValues: json.numValues, grid: json.grid };
 }
 
 // src/engine/PuzzleGenerator.ts
@@ -1067,7 +1111,9 @@ function genRule(puzzle2) {
   }
 }
 function canSolve(puzzle2, rules) {
-  const board2 = Board.create();
+  const numTypes = puzzle2.numTypes;
+  const numValues = puzzle2.numValues;
+  const board2 = Board.create(numTypes, numValues);
   let changed;
   do {
     changed = false;
@@ -1082,21 +1128,21 @@ function canSolve(puzzle2, rules) {
   } while (changed);
   return board2.isSolved();
 }
-function removeRules(puzzle2, rules) {
-  console.groupCollapsed("Removing rules");
+function removeRules(puzzle2, rules, { verbose = false } = {}) {
+  if (verbose) console.groupCollapsed("Removing rules");
   let possible;
   do {
     possible = false;
     for (let i = 0; i < rules.length; i++) {
       if (canSolve(puzzle2, rules.toSpliced(i, 1))) {
         possible = true;
-        console.log(`Removing rule: ${rules[i].getAsText()}`);
+        if (verbose) console.log(`Removing rule: ${rules[i].getAsText()}`);
         rules.splice(i, 1);
         break;
       }
     }
   } while (possible);
-  console.groupEnd();
+  if (verbose) console.groupEnd();
 }
 function generateRules(puzzle2, rules) {
   let rulesDone = false;
@@ -1110,18 +1156,24 @@ function generateRules(puzzle2, rules) {
     rulesDone = canSolve(puzzle2, rules);
   } while (!rulesDone);
 }
-function generatePuzzle() {
-  const puzzle2 = generateRandomSolvedPuzzle();
-  printPuzzle(puzzle2);
+function generatePuzzle(numTypes = 6, numValues = 6, { verbose = false } = {}) {
+  const puzzle2 = generateRandomSolvedPuzzle(numTypes, numValues);
+  if (verbose) {
+    printPuzzle(puzzle2);
+  }
   const rules = [];
   generateRules(puzzle2, rules);
-  console.groupCollapsed(`${rules.length} rules generated`);
-  printRules(rules);
-  console.groupEnd();
-  removeRules(puzzle2, rules);
-  console.group("Final rules");
-  printRules(rules);
-  console.groupEnd();
+  if (verbose) {
+    console.groupCollapsed(`${rules.length} rules generated`);
+    printRules(rules);
+    console.groupEnd();
+  }
+  removeRules(puzzle2, rules, { verbose });
+  if (verbose) {
+    console.group("Final rules");
+    printRules(rules);
+    console.groupEnd();
+  }
   return { puzzle: puzzle2, rules };
 }
 function countHints(rules) {
@@ -1136,13 +1188,13 @@ function countHints(rules) {
   }
   return { horizontal, vertical };
 }
-function generatePuzzleWithAcceptableAmountOfHints() {
+function generatePuzzleWithAcceptableAmountOfHints({ numTypes, numValues, limits }) {
   console.group("Generating solvable puzzle");
   do {
-    const { puzzle: puzzle2, rules } = generatePuzzle();
+    const { puzzle: puzzle2, rules } = generatePuzzle(numTypes, numValues);
     const hints2 = countHints(rules);
     console.log(`Puzzle has ${hints2.horizontal} horizontal and ${hints2.vertical} vertical hints`);
-    if (hints2.horizontal <= 24 && hints2.vertical <= 15) {
+    if (hints2.horizontal <= limits.horizontal && hints2.vertical <= limits.vertical) {
       console.groupEnd();
       return { puzzle: puzzle2, rules };
     }
@@ -1158,7 +1210,7 @@ function findFirstApplicableHint(board2, hints2) {
   ];
   for (const hint of candidates) {
     if (hint.rule instanceof OpenRule) continue;
-    const tempBoard = Board.fromJSON(board2);
+    const tempBoard = Board.fromJSON(board2, board2.length, board2[0].length);
     if (hint.rule.apply(tempBoard)) {
       return hint;
     }
@@ -1168,18 +1220,19 @@ function findFirstApplicableHint(board2, hints2) {
 function findFirstDiff(oldState, newState, rule) {
   const allDiffs = [];
   const resolvedDiffs = [];
-  for (let t = 0; t < ALL_TYPES.length; t++) {
-    const type = ALL_TYPES[t];
-    for (let c = 0; c < 6; c++) {
+  const numTypes = oldState.length;
+  for (let t = 0; t < numTypes; t++) {
+    const numValues = oldState[t].length;
+    for (let c = 0; c < numValues; c++) {
       const oldCands = oldState[t][c];
       const newCands = newState[t][c];
       if (oldCands.length !== newCands.length) {
         if (newCands.length === 1 && oldCands.length > 1) {
-          resolvedDiffs.push({ type, col: c, value: newCands[0] });
+          resolvedDiffs.push({ type: t, col: c, value: newCands[0] });
         }
         for (const v of oldCands) {
           if (!newCands.includes(v)) {
-            allDiffs.push({ type, col: c, value: v });
+            allDiffs.push({ type: t, col: c, value: v });
           }
         }
       }
@@ -1315,6 +1368,67 @@ function h(tag, props, ...children) {
   return element;
 }
 
+// src/ui/screens/LandingScreen.tsx
+function createLandingScreen(onStart, onHelp) {
+  const container = document.createElement("div");
+  container.classList.add("landing-screen");
+  const title = document.createElement("h1");
+  title.textContent = "Einstein";
+  container.appendChild(title);
+  const subtitle = document.createElement("p");
+  subtitle.classList.add("landing-subtitle");
+  subtitle.textContent = "A logic deduction puzzle \u2014 arrange cards using the hints.";
+  container.appendChild(subtitle);
+  const preview = /* @__PURE__ */ h("div", { className: "landing-preview", "data-puzzle-config": "5x5" }, /* @__PURE__ */ h("div", { className: "help-board-wrapper board-container" }));
+  let previewSize = 5;
+  let previewBoard = Board.create(previewSize, previewSize);
+  const previewBoardView = new BoardView(previewBoard);
+  for (let type = 0; type < previewBoard.numTypes; type++) {
+    for (let col = 0; col < previewBoard.numValues; col++) {
+      const val = (col + type) % 5;
+      previewBoard.set(previewBoard.squares[type][col], val);
+    }
+  }
+  preview.querySelector(".board-container").appendChild(previewBoardView.element);
+  container.appendChild(preview);
+  const form = /* @__PURE__ */ h("div", { className: "landing-form" });
+  const sizes = [
+    { key: "4x4", label: "4 \xD7 4" },
+    { key: "5x5", label: "5 \xD7 5" },
+    { key: "6x6", label: "6 \xD7 6" }
+  ];
+  for (const s of sizes) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.classList.add("landing-size");
+    btn.textContent = s.label;
+    btn.addEventListener("click", () => {
+      onStart(s.key);
+    });
+    form.appendChild(btn);
+  }
+  container.appendChild(form);
+  const controls = document.createElement("div");
+  controls.classList.add("landing-controls");
+  const help = document.createElement("button");
+  help.type = "button";
+  help.classList.add("secondary");
+  help.textContent = "How to play";
+  help.addEventListener("click", () => onHelp());
+  controls.appendChild(help);
+  container.appendChild(controls);
+  const screen = {
+    element: container,
+    name: "landing",
+    canDismissByOverlayClick: false,
+    onShow() {
+    },
+    onHide() {
+    }
+  };
+  return screen;
+}
+
 // src/ui/screens/PauseScreen.tsx
 function createPauseScreen() {
   const element = /* @__PURE__ */ h("div", { className: "screen-container" }, /* @__PURE__ */ h("h1", null, "Paused"), /* @__PURE__ */ h("p", null, "Click anywhere to resume"));
@@ -1417,28 +1531,28 @@ function createLoseScreen(props) {
 // src/ui/screens/HelpScreen.tsx
 function createHelpScreen(onDismiss) {
   const solvedBoard = Board.create();
-  for (const type of ALL_TYPES) {
-    const typeIdx = ALL_TYPES.indexOf(type);
+  for (let type = 0; type < 6; type++) {
     for (let col = 0; col < 6; col++) {
-      const val = (col + typeIdx) % 6 + 1;
+      const val = (col + type) % 6;
       solvedBoard.set(solvedBoard.squares[type][col], val);
     }
   }
   const boardView2 = new BoardView(solvedBoard);
   const solvedBoardContainer = /* @__PURE__ */ h("div", { className: "help-board-wrapper board-container" });
   solvedBoardContainer.appendChild(boardView2.element);
-  const cellSquare = new Square("C", 0);
-  cellSquare.candidates.delete(3);
+  const cellSquare = new Square(2, 0, 6);
+  cellSquare.candidates.delete(2);
   const cellBoard = Board.create();
   const squareView = new SquareView(cellSquare, cellBoard);
   const squareCellContainer = /* @__PURE__ */ h("div", { className: "help-square-wrapper" });
   squareCellContainer.appendChild(squareView.element);
-  const actionSquare = new Square("C", 0);
-  actionSquare.candidates.delete(3);
+  const actionSquare = new Square(2, 0, 6);
+  actionSquare.candidates.delete(2);
   const inlineActionView = createActionContentElement(
     actionSquare,
     2,
     // selected II
+    iota(6),
     () => {
     },
     () => {
@@ -1446,26 +1560,26 @@ function createHelpScreen(onDismiss) {
   );
   inlineActionView.classList.add("inline-action-view");
   const vHint = makeHint(
-    new UnderRule({ type: "C", value: 2 }, { type: "F", value: 1 })
+    new UnderRule({ type: 2, value: 1 }, { type: 5, value: 0 })
     // II and +
   );
   const vHintEl = createVerticalHintElement(vHint, new VisibilityObservable());
   const vHintWrapper = /* @__PURE__ */ h("div", { className: "help-hint-wrapper" });
   vHintWrapper.appendChild(vHintEl);
   const nearHint = makeHint(
-    new NearRule({ type: "A", value: 1 }, { type: "C", value: 2 })
+    new NearRule({ type: 0, value: 0 }, { type: 2, value: 1 })
   );
   const nearHintEl = createHorizontalHintElement(nearHint, new VisibilityObservable());
   const nearHintWrapper = /* @__PURE__ */ h("div", { className: "help-hint-wrapper" });
   nearHintWrapper.appendChild(nearHintEl);
   const dirHint = makeHint(
-    new DirectionRule({ type: "A", value: 3 }, { type: "E", value: 4 })
+    new DirectionRule({ type: 0, value: 2 }, { type: 4, value: 3 })
   );
   const dirHintEl = createHorizontalHintElement(dirHint, new VisibilityObservable());
   const dirHintWrapper = /* @__PURE__ */ h("div", { className: "help-hint-wrapper" });
   dirHintWrapper.appendChild(dirHintEl);
   const betHint = makeHint(
-    new BetweenRule({ type: "D", value: 1 }, { type: "B", value: 5 }, { type: "F", value: 6 })
+    new BetweenRule({ type: 3, value: 0 }, { type: 1, value: 4 }, { type: 5, value: 5 })
   );
   const betHintEl = createHorizontalHintElement(betHint, new VisibilityObservable());
   const betHintWrapper = /* @__PURE__ */ h("div", { className: "help-hint-wrapper" });
@@ -1482,6 +1596,35 @@ function createHelpScreen(onDismiss) {
 }
 
 // src/app.ts
+var configurations = {
+  "4x4": {
+    numTypes: 4,
+    numValues: 4,
+    limits: { horizontal: 12, vertical: 8 },
+    layout: {
+      horizontalHints: { columns: 2, rows: 6 },
+      verticalHints: { columns: 12 }
+    }
+  },
+  "5x5": {
+    numTypes: 5,
+    numValues: 5,
+    limits: { horizontal: 20, vertical: 10 },
+    layout: {
+      horizontalHints: { columns: 3, rows: 8 },
+      verticalHints: { columns: 15 }
+    }
+  },
+  "6x6": {
+    numTypes: 6,
+    numValues: 6,
+    limits: { horizontal: 24, vertical: 15 },
+    layout: {
+      horizontalHints: { columns: 3, rows: 8 },
+      verticalHints: { columns: 15 }
+    }
+  }
+};
 var board;
 var puzzle;
 var hints;
@@ -1489,6 +1632,7 @@ var boardView;
 var hintToElement;
 var finished = false;
 var hasUsedAssistance = false;
+var fullscreenContainer = document.querySelector(".fullscreen-container");
 var timerElement = document.getElementById("timer-container");
 var boardContainer = document.getElementById("board-container");
 var hintsVContainer = document.getElementById("hints-v-container");
@@ -1522,21 +1666,24 @@ document.getElementById("btn-toggle-hints").addEventListener("click", () => {
 document.getElementById("btn-help").addEventListener("click", () => {
   screenManager.push(createHelpScreen(() => screenManager.pop()));
 });
-function startGame(debugData) {
+function startGame(configKey = "5x5", debugData) {
   finished = false;
   hasUsedAssistance = false;
+  hintViewVisibility.setVisible(true);
   timer.reset();
   timerElement.classList.remove("assisted");
+  const config = configurations[configKey];
   boardContainer.replaceChildren();
   hintsVContainer.replaceChildren();
   hintsHContainer.replaceChildren();
-  const generated = generate(debugData);
+  const generated = generate(config, debugData);
   board = generated.board;
   puzzle = generated.puzzle;
   hints = generated.hints;
   boardView = new BoardView(board);
+  fullscreenContainer.setAttribute("data-puzzle-config", `${board.numTypes}x${board.numValues}`);
   boardContainer.appendChild(boardView.element);
-  hintToElement = makeHintViews(hints, hintViewVisibility, hintsVContainer, hintsHContainer);
+  hintToElement = makeHintViews(hints, hintViewVisibility, hintsVContainer, hintsHContainer, config);
   board.addEventListener("change", () => {
     if (finished) return;
     if (!board.isValid(puzzle)) {
@@ -1569,7 +1716,21 @@ function startGame(debugData) {
   timer.start();
   logGameState();
 }
-startGame();
+var landingScreen = createLandingScreen(
+  (selected) => {
+    screenManager.pop();
+    startGame(selected);
+  },
+  () => {
+    screenManager.push(createHelpScreen(() => screenManager.pop()));
+  }
+);
+screenManager.push(landingScreen);
+document.getElementById("btn-exit").addEventListener("click", () => {
+  finished = true;
+  timer.stop();
+  screenManager.push(landingScreen);
+});
 document.getElementById("btn-reveal-hint").addEventListener("click", () => {
   hasUsedAssistance = true;
   timerElement.classList.add("assisted");
@@ -1587,7 +1748,7 @@ document.getElementById("btn-reveal-card").addEventListener("click", () => {
   const hint = findFirstApplicableHint(oldState, hints);
   if (hint) {
     blinkHint(hint, hintToElement);
-    const tempBoard = Board.fromJSON(oldState);
+    const tempBoard = Board.fromJSON(oldState, board.numTypes, board.numValues);
     hint.rule.apply(tempBoard);
     const newState = tempBoard.toJSON();
     const diff = findFirstDiff(oldState, newState, hint.rule);
@@ -1618,25 +1779,25 @@ function logGameState() {
     console.log(data);
   }, 0);
 }
-function generate(debugData) {
+function generate(config, debugData) {
   if (debugData !== void 0) {
-    const board2 = Board.fromJSON(debugData.board);
     const puzzle2 = fromJSON(debugData.puzzle);
+    const board2 = Board.fromJSON(debugData.board, puzzle2.numTypes, puzzle2.numValues);
     const hints2 = debugData.hints.map((h2) => {
       const rule = ruleFromJSON(h2.rule);
       return makeHint(rule, h2.visible);
     });
     return { board: board2, puzzle: puzzle2, hints: hints2 };
   } else {
-    const board2 = Board.create();
-    const generated = generatePuzzleWithAcceptableAmountOfHints();
+    const board2 = Board.create(config.numTypes, config.numValues);
+    const generated = generatePuzzleWithAcceptableAmountOfHints(config);
     const puzzle2 = generated.puzzle;
     const hints2 = generated.rules.map((rule) => makeHint(rule));
     board2.applyRules(generated.rules.filter((r) => r instanceof OpenRule));
     return { board: board2, puzzle: puzzle2, hints: hints2 };
   }
 }
-function makeHintViews(hints2, hintViewVisibility2, hintsVContainer2, hintsHContainer2) {
+function makeHintViews(hints2, hintViewVisibility2, hintsVContainer2, hintsHContainer2, config) {
   const hintToElement2 = /* @__PURE__ */ new Map();
   let hCount = 0;
   let vCount = 0;
@@ -1654,17 +1815,16 @@ function makeHintViews(hints2, hintViewVisibility2, hintsVContainer2, hintsHCont
       hCount++;
     }
   }
-  for (let i = hCount; i < 24; i++) {
+  for (let i = hCount; i < config.layout.horizontalHints.rows * config.layout.horizontalHints.columns; i++) {
     const el = document.createElement("div");
     el.classList.add("hint", "horizontal-hint");
     hintsHContainer2.appendChild(el);
   }
-  for (let i = vCount; i < 15; i++) {
+  for (let i = vCount; i < config.layout.verticalHints.columns; i++) {
     const el = document.createElement("div");
     el.classList.add("hint", "vertical-hint");
     hintsVContainer2.appendChild(el);
   }
   return hintToElement2;
 }
-if (typeof process !== 'object') { new EventSource('/esbuild').addEventListener('change', () => location.reload()); }
 //# sourceMappingURL=app.js.map

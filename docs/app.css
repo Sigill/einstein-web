@@ -192,19 +192,6 @@ template {
 }
 
 /* src/style/layout.css */
-:root {
-  --fullscreen-container-padding: 10px;
-  --fullscreen-container-item-padding: 10px;
-  --card-gap: 4px;
-  --h-hint-h-gap: 8px;
-  --usable-width-board-and-h-hints: calc(100lvw - 2 * var(--fullscreen-container-padding) - 4 * var(--fullscreen-container-item-padding) - 5 * var(--card-gap) - 2 * var(--h-hint-h-gap));
-  --usable-width-v-hints: calc(100lvw - 2 * var(--fullscreen-container-padding) - 2 * var(--fullscreen-container-item-padding) - 14 * var(--card-gap));
-  --usable-height-v-and-h-hints: calc(100lvh - 2 * var(--fullscreen-container-padding) - 4 * var(--fullscreen-container-item-padding) - 7 * var(--card-gap));
-  --usable-width-per-cell: calc(var(--usable-width-v-hints) / 15);
-  --usable-height-v-and-h-hints-per-cell: calc(var(--usable-height-v-and-h-hints) / 10);
-  --cell-size: clamp(50px, min(var(--usable-width-per-cell), var(--usable-height-v-and-h-hints-per-cell)), 100px);
-  --mini-size: calc(var(--cell-size) / 3.3);
-}
 html,
 body {
   height: 100%;
@@ -217,6 +204,75 @@ body {
   background-color: var(--bg-color);
   color: var(--text-color);
   box-sizing: border-box;
+}
+.fullscreen-container[data-puzzle-config="6x6"] {
+  --fullscreen-container-padding: 10px;
+  --fullscreen-container-item-padding: 10px;
+  --cell-min: 50px;
+  --cell-max: 100px;
+  --mini-ratio: 3.3;
+  --board-cell-ratio: 1;
+  --hint-cell-ratio: 1;
+  --card-gap: 4px;
+  --hint-gap: calc(var(--card-gap));
+  --h-hint-h-gap: 8px;
+  --usable-width-board-and-h-hints: calc(100lvw - 2 * var(--fullscreen-container-padding) - 4 * var(--fullscreen-container-item-padding) - 5 * var(--card-gap) - 2 * var(--h-hint-h-gap));
+  --usable-width-v-hints: calc(100lvw - 2 * var(--fullscreen-container-padding) - 2 * var(--fullscreen-container-item-padding) - 14 * var(--hint-gap));
+  --usable-height-v-and-h-hints: calc(100lvh - 2 * var(--fullscreen-container-padding) - 4 * var(--fullscreen-container-item-padding) - 7 * var(--hint-gap));
+  --horizontal-base-units: calc(6 * var(--board-cell-ratio) + 9 * var(--hint-cell-ratio));
+  --vertical-base-units: calc(8 * var(--hint-cell-ratio) + 2 * var(--hint-cell-ratio));
+  --usable-width-per-base-unit: calc(var(--usable-width-v-hints) / var(--horizontal-base-units));
+  --usable-height-per-base-unit: calc(var(--usable-height-v-and-h-hints) / var(--vertical-base-units));
+  --base-cell-size: clamp(var(--cell-min), min(var(--usable-width-per-base-unit), var(--usable-height-per-base-unit)), var(--cell-max));
+  --mini-size: calc((var(--base-cell-size) * var(--board-cell-ratio)) / var(--mini-ratio));
+  --board-cell-size: calc(var(--base-cell-size) * var(--board-cell-ratio));
+  --hint-cell-size: calc(var(--base-cell-size) * var(--hint-cell-ratio));
+}
+.fullscreen-container[data-puzzle-config="5x5"] {
+  --fullscreen-container-padding: 10px;
+  --fullscreen-container-item-padding: 10px;
+  --cell-min: 50px;
+  --cell-max: 100px;
+  --mini-ratio: 3.3;
+  --board-cell-ratio: calc(6/5);
+  --hint-cell-ratio: 1;
+  --card-gap: 4px;
+  --hint-gap: calc(var(--card-gap) * 4 / 5);
+  --h-hint-h-gap: 8px;
+  --usable-width-board-and-h-hints: calc(100lvw - 2 * var(--fullscreen-container-padding) - 4 * var(--fullscreen-container-item-padding) - 5 * var(--card-gap) - 2 * var(--h-hint-h-gap));
+  --usable-width-v-hints: calc(100lvw - 2 * var(--fullscreen-container-padding) - 2 * var(--fullscreen-container-item-padding) - 14 * var(--hint-gap));
+  --usable-height-v-and-h-hints: calc(100lvh - 2 * var(--fullscreen-container-padding) - 4 * var(--fullscreen-container-item-padding) - 7 * var(--hint-gap));
+  --horizontal-base-units: calc(5 * var(--board-cell-ratio) + 9 * var(--hint-cell-ratio));
+  --vertical-base-units: calc(5 * var(--hint-cell-ratio) + 2 * var(--hint-cell-ratio));
+  --usable-width-per-base-unit: calc(var(--usable-width-v-hints) / var(--horizontal-base-units));
+  --usable-height-per-base-unit: calc(var(--usable-height-v-and-h-hints) / var(--vertical-base-units));
+  --base-cell-size: clamp(var(--cell-min), min(var(--usable-width-per-base-unit), var(--usable-height-per-base-unit)), var(--cell-max));
+  --mini-size: calc((var(--base-cell-size) * var(--board-cell-ratio)) / var(--mini-ratio));
+  --board-cell-size: calc(var(--base-cell-size) * var(--board-cell-ratio));
+  --hint-cell-size: calc(var(--base-cell-size) * var(--hint-cell-ratio));
+}
+.fullscreen-container[data-puzzle-config="4x4"] {
+  --fullscreen-container-padding: 10px;
+  --fullscreen-container-item-padding: 10px;
+  --cell-min: 50px;
+  --cell-max: 100px;
+  --mini-ratio: 3.3;
+  --board-cell-ratio: 1.5;
+  --hint-cell-ratio: 1;
+  --card-gap: 4px;
+  --hint-gap: calc(var(--card-gap) * 3 / 5);
+  --h-hint-h-gap: 8px;
+  --usable-width-board-and-h-hints: calc(100lvw - 2 * var(--fullscreen-container-padding) - 4 * var(--fullscreen-container-item-padding) - 3 * var(--card-gap) - 1 * var(--h-hint-h-gap));
+  --usable-width-v-hints: calc(100lvw - 2 * var(--fullscreen-container-padding) - 2 * var(--fullscreen-container-item-padding) - 7 * var(--hint-gap));
+  --usable-height-v-and-h-hints: calc(100lvh - 2 * var(--fullscreen-container-padding) - 4 * var(--fullscreen-container-item-padding) - 7 * var(--hint-gap));
+  --horizontal-base-units: calc(4 * var(--board-cell-ratio) + 6 * var(--hint-cell-ratio));
+  --vertical-base-units: calc(6 * var(--hint-cell-ratio) + 2 * var(--hint-cell-ratio));
+  --usable-width-per-base-unit: calc(var(--usable-width-v-hints) / var(--horizontal-base-units));
+  --usable-height-per-base-unit: calc(var(--usable-height-v-and-h-hints) / var(--vertical-base-units));
+  --base-cell-size: clamp(var(--cell-min), min(var(--usable-width-per-base-unit), var(--usable-height-per-base-unit)), var(--cell-max));
+  --mini-size: calc((var(--base-cell-size) * var(--board-cell-ratio)) / var(--mini-ratio));
+  --board-cell-size: calc(var(--base-cell-size) * var(--board-cell-ratio));
+  --hint-cell-size: calc(var(--base-cell-size) * var(--hint-cell-ratio));
 }
 .fullscreen-container {
   box-sizing: border-box;
@@ -236,17 +292,35 @@ body {
 /* src/style/card-and-board.css */
 #board-container,
 .board-container {
+  --cell-size: var(--board-cell-size);
   display: grid;
   grid-template-columns: repeat(6, var(--cell-size));
   grid-template-rows: repeat(6, var(--cell-size));
   gap: var(--card-gap);
   box-sizing: border-box;
+  width: fit-content;
+  height: fit-content;
   background: #1e1e1e;
   padding: var(--fullscreen-container-item-padding);
   border-radius: 12px;
 }
 #board-container {
   grid-area: board;
+}
+[data-puzzle-config="4x4"] #board-container,
+[data-puzzle-config="4x4"] .board-container {
+  grid-template-columns: repeat(4, var(--cell-size));
+  grid-template-rows: repeat(4, var(--cell-size));
+}
+[data-puzzle-config="5x5"] #board-container,
+[data-puzzle-config="5x5"] .board-container {
+  grid-template-columns: repeat(5, var(--cell-size));
+  grid-template-rows: repeat(5, var(--cell-size));
+}
+[data-puzzle-config="6x6"] #board-container,
+[data-puzzle-config="6x6"] .board-container {
+  grid-template-columns: repeat(6, var(--cell-size));
+  grid-template-rows: repeat(6, var(--cell-size));
 }
 .square-cell {
   background-color: #222;
@@ -262,13 +336,31 @@ body {
   background-color: var(--card-bg-resolved);
 }
 .candidates-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(2, 1fr);
+  --cand-gap: var(--card-gap, 6px);
+  display: flex;
+  flex-wrap: wrap;
+  align-content: center;
+  justify-content: center;
+  gap: var(--cand-gap);
   width: 100%;
   height: 100%;
   padding: 2px;
   box-sizing: border-box;
+}
+.candidates-grid .mini-card-container {
+  box-sizing: border-box;
+}
+[data-puzzle-config$=x6] .candidates-grid .mini-card-container,
+[data-puzzle-config$=x5] .candidates-grid .mini-card-container {
+  width: calc((100% - (2 * var(--cand-gap))) / 3);
+  height: calc((100% - var(--cand-gap)) / 2);
+}
+[data-puzzle-config$=x4] .candidates-grid .mini-card-container {
+  width: calc((100% - var(--cand-gap)) / 2);
+  height: calc((100% - var(--cand-gap)) / 2);
+}
+[data-puzzle-config$=x5] .candidates-grid {
+  justify-content: center;
 }
 .mini-card-container {
   display: flex;
@@ -327,9 +419,8 @@ body {
   grid-area: buttons;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 4px;
+  gap: var(--card-gap);
   border-radius: 12px;
-  width: calc(6 * var(--cell-size) + 5 * var(--card-gap) + 2 * var(--fullscreen-container-item-padding));
   padding: var(--fullscreen-container-item-padding);
   box-sizing: border-box;
   justify-self: start;
@@ -340,7 +431,7 @@ body {
     border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 5px 0;
-    font-size: calc(var(--cell-size) * 0.2);
+    font-size: calc(var(--hint-cell-size) * 0.2);
     cursor: pointer;
     transition: background 0.2s;
   }
@@ -353,7 +444,7 @@ body {
     border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 5px 0;
-    font-size: calc(var(--cell-size) * 0.2);
+    font-size: calc(var(--hint-cell-size) * 0.2);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -371,13 +462,25 @@ body {
     text-shadow: 0 0 8px rgba(255, 77, 90, 0.5);
   }
 }
+[data-puzzle-config="4x4"] #buttons-container {
+  grid-template-columns: repeat(3, 1fr);
+  width: calc(6 * var(--hint-cell-size) + 5 * var(--hint-gap) + 2 * var(--fullscreen-container-item-padding));
+}
+[data-puzzle-config="5x5"] #buttons-container {
+  grid-template-columns: repeat(3, 1fr);
+  width: calc(6 * var(--hint-cell-size) + 5 * var(--hint-gap) + 2 * var(--fullscreen-container-item-padding));
+}
+[data-puzzle-config="6x6"] #buttons-container {
+  grid-template-columns: repeat(3, 1fr);
+  width: calc(6 * var(--hint-cell-size) + 5 * var(--hint-gap) + 2 * var(--fullscreen-container-item-padding));
+}
 
 /* src/style/hints.css */
 #hints-v-container {
   grid-area: hints-v;
   display: grid;
-  grid-template-columns: repeat(15, var(--cell-size));
-  gap: var(--card-gap);
+  grid-template-columns: repeat(15, var(--hint-cell-size));
+  gap: var(--hint-gap);
   border-radius: 12px;
   padding: var(--fullscreen-container-item-padding);
   box-sizing: border-box;
@@ -385,13 +488,22 @@ body {
 #hints-h-container {
   grid-area: hints-h;
   display: grid;
-  grid-template-rows: repeat(8, var(--cell-size));
-  gap: var(--card-gap) var(--h-hint-h-gap);
+  grid-template-rows: repeat(8, var(--hint-cell-size));
+  gap: var(--hint-gap) var(--h-hint-h-gap);
   border-radius: 12px;
   padding: var(--fullscreen-container-item-padding);
   grid-auto-flow: column;
 }
+[data-puzzle-config="4x4"] {
+  #hints-h-container {
+    grid-template-rows: repeat(6, var(--hint-cell-size));
+  }
+  #hints-v-container {
+    grid-template-columns: repeat(12, var(--hint-cell-size));
+  }
+}
 .hint {
+  --cell-size: var(--hint-cell-size);
   display: flex;
   background: var(--card-bg);
   border-radius: 8px;
@@ -413,21 +525,21 @@ body {
 }
 .vertical-hint {
   flex-direction: column;
-  width: var(--cell-size);
-  height: calc(var(--cell-size) * 2);
+  width: var(--hint-cell-size);
+  height: calc(var(--hint-cell-size) * 2);
 }
 .horizontal-hint {
   flex-direction: row;
-  width: calc(var(--cell-size) * 3);
-  height: var(--cell-size);
+  width: calc(var(--hint-cell-size) * 3);
+  height: var(--hint-cell-size);
 }
 .hint-indicator {
   display: flex;
   align-items: center;
   justify-content: center;
   color: #ccc;
-  width: calc(var(--cell-size) * 0.9);
-  height: calc(var(--cell-size) * 0.9);
+  width: calc(var(--hint-cell-size) * 0.9);
+  height: calc(var(--hint-cell-size) * 0.9);
 }
 @keyframes blink-animation {
   0% {
@@ -464,7 +576,7 @@ body {
   #hints-h-container {
     grid-auto-flow: row;
     grid-template-rows: unset;
-    grid-template-columns: repeat(2, calc(3 * var(--cell-size)));
+    grid-template-columns: repeat(2, calc(3 * var(--hint-cell-size)));
     padding: 0;
   }
   #hints-v-container {
@@ -481,7 +593,7 @@ body {
   #hints-h-container {
     grid-auto-flow: row;
     grid-template-rows: unset;
-    grid-template-columns: repeat(2, calc(3 * var(--cell-size)));
+    grid-template-columns: repeat(2, calc(3 * var(--hint-cell-size)));
     padding: 0;
   }
   #hints-v-container {
@@ -779,8 +891,9 @@ body {
   width: 100%;
 }
 .help-board-wrapper {
-  --cell-size: 36px;
-  padding: 6px;
+  --board-cell-size: 36px;
+  --card-gap: 3px;
+  --fullscreen-container-item-padding: 6px;
 }
 .help-square-wrapper {
   --cell-size: 72px;
@@ -846,6 +959,7 @@ body {
     --usable-width-board-and-buttons: calc(100lvw - 2 * var(--fullscreen-container-padding) - 2 * var(--fullscreen-container-padding) - 2 * var(--fullscreen-container-item-padding) - 5 * var(--card-gap) - 5 * var(--card-gap) - 2 * var(--fullscreen-container-item-padding));
     --usable-width-per-cell: min(calc(var(--usable-width-board-and-buttons)) / 12, calc(var(--usable-height) / 6));
     --cell-size: max(35px, var(--usable-width-per-cell));
+    --hint-cell-size: var(--cell-size);
   }
   .fullscreen-container {
     width: 100lvw;
@@ -883,6 +997,7 @@ body {
     --usable-width: calc(100lvw - 2 * var(--fullscreen-container-padding) - 2 * var(--fullscreen-container-item-padding) - 5 * var(--card-gap));
     --usable-width-per-cell: calc(var(--usable-width) / 6);
     --cell-size: max(35px, var(--usable-width-per-cell));
+    --hint-cell-size: calc(var(--cell-size) * 0.95);
   }
   .fullscreen-container {
     width: 100lvw;
@@ -918,6 +1033,71 @@ body {
   #buttons-container {
     padding: 0;
     justify-self: center;
+  }
+}
+
+/* src/style/landing.css */
+.landing-screen {
+  max-width: 540px;
+  margin: 28px auto;
+  padding: 24px;
+  text-align: center;
+  color: var(--text-color);
+}
+.landing-screen > h1 {
+  margin: 0 0 8px 0;
+  font-size: 28px;
+}
+.landing-subtitle {
+  margin: 0 0 16px 0;
+  color: #cfcfcf;
+  font-size: 14px;
+}
+.landing-preview {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 8px auto 16px;
+}
+.landing-form {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 12px 0;
+}
+.landing-size {
+  padding: 8px 12px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.landing-controls {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+.landing-controls .primary {
+  padding: 10px 20px;
+}
+.landing-controls .secondary {
+  padding: 8px 16px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-color);
+  cursor: pointer;
+}
+@media (max-width: 480px) {
+  .landing-screen {
+    margin: 12px;
+    padding: 16px;
+  }
+  .landing-preview-cell {
+    width: 14px;
+    height: 14px;
   }
 }
 
