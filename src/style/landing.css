@@ -1,0 +1,67 @@
+/* Styles for landing screen */
+.landing-screen {
+  max-width: 540px;
+  margin: 28px auto;
+  padding: 24px;
+  text-align: center;
+  color: var(--text-color);
+}
+
+.landing-screen > h1 {
+  margin: 0 0 8px 0;
+  font-size: 28px;
+}
+
+.landing-subtitle {
+  margin: 0 0 16px 0;
+  color: #cfcfcf;
+  font-size: 14px;
+}
+
+.landing-preview {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 8px auto 16px;
+}
+
+.landing-form {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.landing-size {
+  padding: 8px 12px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.landing-controls {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.landing-controls .primary {
+  padding: 10px 20px;
+}
+
+.landing-controls .secondary {
+  padding: 8px 16px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-color);
+  cursor: pointer;
+}
+
+@media (max-width: 480px) {
+  .landing-screen { margin: 12px; padding: 16px; }
+  .landing-preview-cell { width: 14px; height: 14px; }
+}
