@@ -53,8 +53,8 @@ export class Timer {
     this.displayElement.textContent = Timer.formatTime(this.elapsedTime);
   }
 
-  public saveBestTime(withAssistance: boolean): boolean {
-    const key = localstorageKey(withAssistance);
+  public saveBestTime(withAssistance: boolean, configKey: string = ''): boolean {
+    const key = localstorageKey(withAssistance, configKey);
     const currentBest = localStorage.getItem(key);
     if (!currentBest || this.elapsedTime < parseInt(currentBest, 10)) {
       localStorage.setItem(key, this.elapsedTime.toString());
@@ -63,13 +63,14 @@ export class Timer {
     return false;
   }
 
-  public getBestTime(withAssistance: boolean): number | null {
-    const key = localstorageKey(withAssistance);
+  public getBestTime(withAssistance: boolean, configKey: string): number | null {
+    const key = localstorageKey(withAssistance, configKey);
     const best = localStorage.getItem(key);
     return best ? parseInt(best, 10) : null;
   }
 }
 
-function localstorageKey(withAssistance: boolean) {
-  return withAssistance ? 'einstein-best-time-assisted' : 'einstein-best-time';
+function localstorageKey(withAssistance: boolean, configKey: string) {
+  const base = withAssistance ? 'einstein-best-time-assisted' : 'einstein-best-time';
+  return configKey ? `${base}-${configKey}` : base;
 }

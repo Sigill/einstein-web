@@ -146,8 +146,8 @@ function startGame(configKey: keyof typeof configurations = '5x5', debugData?: P
       finished = true;
       timer.stop();
       const timeMs = timer.getElapsedTime();
-      const bestTimeMs = timer.getBestTime(hasUsedAssistance);
-      const isBest = timer.saveBestTime(hasUsedAssistance);
+      const bestTimeMs = timer.getBestTime(hasUsedAssistance, configKey);
+      const isBest = timer.saveBestTime(hasUsedAssistance, configKey);
       screenManager.push(createWinScreen({
         timeMs,
         isBest,
