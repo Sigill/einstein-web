@@ -1,4 +1,4 @@
-const CACHE_NAME = 'einstein-cache-5a323e0e2e84d1891dbb34e539037e68da0c6ac3';
+const CACHE_NAME = 'einstein-cache-6ee48bf570b4befd231e8e337ec4b98004884d56';
 const ASSETS = [
   'index.html',
   'app.css',

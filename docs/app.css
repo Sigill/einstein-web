@@ -944,7 +944,7 @@ body {
   }
 }
 .help-hint-wrapper {
-  --cell-size: 50px;
+  --hint-cell-size: 50px;
   --card-gap: 2px;
   display: flex;
   flex-shrink: 0;

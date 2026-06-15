@@ -1545,7 +1545,7 @@ function createHelpScreen(onDismiss) {
   cellSquare.candidates.delete(2);
   const cellBoard = Board.create();
   const squareView = new SquareView(cellSquare, cellBoard);
-  const squareCellContainer = /* @__PURE__ */ h("div", { className: "help-square-wrapper" });
+  const squareCellContainer = /* @__PURE__ */ h("div", { className: "help-square-wrapper", "data-puzzle-config": "6x6" });
   squareCellContainer.appendChild(squareView.element);
   const actionSquare = new Square(2, 0, 6);
   actionSquare.candidates.delete(2);
