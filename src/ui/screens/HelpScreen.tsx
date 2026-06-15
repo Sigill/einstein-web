@@ -30,7 +30,7 @@ export function createHelpScreen(onDismiss: () => void): Screen {
   cellSquare.candidates.delete(2); // Remove III (zero-based index 2)
   const cellBoard = Board.create();
   const squareView = new SquareView(cellSquare, cellBoard);
-  const squareCellContainer = <div className="help-square-wrapper"></div> as HTMLElement;
+  const squareCellContainer = <div className="help-square-wrapper" data-puzzle-config="6x6"></div> as HTMLElement;
   squareCellContainer.appendChild(squareView.element);
 
   // 3. Inline Action View (Touch selection menu mockup)
