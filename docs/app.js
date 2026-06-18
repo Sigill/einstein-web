@@ -38,6 +38,13 @@ function iota(n) {
   }
   return values;
 }
+function formatTime(ms) {
+  const totalSeconds = Math.floor(ms / 1e3);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor(totalSeconds % 3600 / 60);
+  const seconds = totalSeconds % 60;
+  return [hours, minutes, seconds].map((v) => v.toString().padStart(2, "0")).join(":");
+}
 
 // src/engine/Square.ts
 var Square = class extends Observable {
@@ -1369,7 +1376,7 @@ function h(tag, props, ...children) {
 }
 
 // src/ui/screens/LandingScreen.tsx
-function createLandingScreen(onStart, onHelp) {
+function createLandingScreen(onStart, onHelp, onHallOfFame) {
   const container = document.createElement("div");
   container.classList.add("landing-screen");
   const title = document.createElement("h1");
@@ -1380,8 +1387,8 @@ function createLandingScreen(onStart, onHelp) {
   subtitle.textContent = "A logic deduction puzzle \u2014 arrange cards using the hints.";
   container.appendChild(subtitle);
   const preview = /* @__PURE__ */ h("div", { className: "landing-preview", "data-puzzle-config": "5x5" }, /* @__PURE__ */ h("div", { className: "help-board-wrapper board-container" }));
-  let previewSize = 5;
-  let previewBoard = Board.create(previewSize, previewSize);
+  const previewSize = 5;
+  const previewBoard = Board.create(previewSize, previewSize);
   const previewBoardView = new BoardView(previewBoard);
   for (let type = 0; type < previewBoard.numTypes; type++) {
     for (let col = 0; col < previewBoard.numValues; col++) {
@@ -1410,12 +1417,12 @@ function createLandingScreen(onStart, onHelp) {
   container.appendChild(form);
   const controls = document.createElement("div");
   controls.classList.add("landing-controls");
-  const help = document.createElement("button");
-  help.type = "button";
-  help.classList.add("secondary");
-  help.textContent = "How to play";
+  const help = /* @__PURE__ */ h("button", { type: "button", className: "secondary" }, "How to play");
   help.addEventListener("click", () => onHelp());
   controls.appendChild(help);
+  const hallOfFame = /* @__PURE__ */ h("button", { type: "button", className: "secondary" }, "Hall of Fame");
+  hallOfFame.addEventListener("click", () => onHallOfFame());
+  controls.appendChild(hallOfFame);
   container.appendChild(controls);
   const screen = {
     element: container,
@@ -1439,73 +1446,9 @@ function createPauseScreen() {
   };
 }
 
-// src/ui/Timer.ts
-var Timer = class _Timer {
-  startTime = 0;
-  elapsedTime = 0;
-  timerInterval = null;
-  displayElement;
-  constructor(displayElement) {
-    this.displayElement = displayElement;
-  }
-  start() {
-    if (this.timerInterval !== null) return;
-    this.startTime = performance.now() - this.elapsedTime;
-    this.timerInterval = window.setInterval(() => {
-      this.elapsedTime = performance.now() - this.startTime;
-      this.updateDisplay();
-    }, 1e3);
-  }
-  pause() {
-    if (this.timerInterval !== null) {
-      clearInterval(this.timerInterval);
-      this.timerInterval = null;
-    }
-  }
-  stop() {
-    this.pause();
-  }
-  reset() {
-    this.stop();
-    this.elapsedTime = 0;
-    this.updateDisplay();
-  }
-  getElapsedTime() {
-    return this.elapsedTime;
-  }
-  static formatTime(ms) {
-    const totalSeconds = Math.floor(ms / 1e3);
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor(totalSeconds % 3600 / 60);
-    const seconds = totalSeconds % 60;
-    return [hours, minutes, seconds].map((v) => v.toString().padStart(2, "0")).join(":");
-  }
-  updateDisplay() {
-    this.displayElement.textContent = _Timer.formatTime(this.elapsedTime);
-  }
-  saveBestTime(withAssistance, configKey = "") {
-    const key = localstorageKey(withAssistance, configKey);
-    const currentBest = localStorage.getItem(key);
-    if (!currentBest || this.elapsedTime < parseInt(currentBest, 10)) {
-      localStorage.setItem(key, this.elapsedTime.toString());
-      return true;
-    }
-    return false;
-  }
-  getBestTime(withAssistance, configKey) {
-    const key = localstorageKey(withAssistance, configKey);
-    const best = localStorage.getItem(key);
-    return best ? parseInt(best, 10) : null;
-  }
-};
-function localstorageKey(withAssistance, configKey) {
-  const base = withAssistance ? "einstein-best-time-assisted" : "einstein-best-time";
-  return configKey ? `${base}-${configKey}` : base;
-}
-
 // src/ui/screens/WinScreen.tsx
 function createWinScreen(props) {
-  const element = /* @__PURE__ */ h("div", { className: "screen-container" }, /* @__PURE__ */ h("h1", { style: "color: #7bff7b;" }, props.hasUsedAssistance ? "Puzzle Solved!" : "Victory!"), props.hasUsedAssistance && /* @__PURE__ */ h("p", { style: "font-size: 1.2rem; margin: 0; color: #ffeb3b; opacity: 0.8;" }, "(with assistance)"), /* @__PURE__ */ h("p", { style: "font-size: 2rem; margin: 10px 0;" }, Timer.formatTime(props.timeMs)), props.isBest ? /* @__PURE__ */ h("p", { style: "color: #ffff7b; font-weight: bold; font-size: 1.5rem; animation: pulse 1s infinite;" }, "\u2605 NEW PERSONAL BEST \u2605") : props.bestTimeMs && /* @__PURE__ */ h("p", { style: "opacity: 0.6;" }, "Best time: ", Timer.formatTime(props.bestTimeMs)), /* @__PURE__ */ h("p", { style: "margin-top: 30px;" }, "Click anywhere to play again"));
+  const element = /* @__PURE__ */ h("div", { className: "screen-container" }, /* @__PURE__ */ h("h1", { style: "color: #7bff7b;" }, props.hasUsedAssistance ? "Puzzle Solved!" : "Victory!"), props.hasUsedAssistance && /* @__PURE__ */ h("p", { style: "font-size: 1.2rem; margin: 0; color: #ffeb3b; opacity: 0.8;" }, "(with assistance)"), /* @__PURE__ */ h("p", { style: "font-size: 2rem; margin: 10px 0;" }, formatTime(props.timeMs)), props.isBest ? /* @__PURE__ */ h("p", { style: "color: #ffff7b; font-weight: bold; font-size: 1.5rem; animation: pulse 1s infinite;" }, "\u2605 NEW PERSONAL BEST \u2605") : props.bestTimeMs && /* @__PURE__ */ h("p", { style: "opacity: 0.6;" }, "Best time: ", formatTime(props.bestTimeMs)), /* @__PURE__ */ h("p", { style: "margin-top: 30px;" }, "Click anywhere to play again"));
   return {
     element,
     name: "win",
@@ -1595,6 +1538,90 @@ function createHelpScreen(onDismiss) {
     canDismissByOverlayClick: true
   };
 }
+
+// src/misc/BestTimes.ts
+function localstorageKey(withAssistance, configKey) {
+  const base = withAssistance ? "einstein-best-time-assisted" : "einstein-best-time";
+  return configKey ? `${base}-${configKey}` : base;
+}
+function saveBestTime(elapsedTime, withAssistance, configKey) {
+  const key = localstorageKey(withAssistance, configKey);
+  const currentBest = localStorage.getItem(key);
+  if (!currentBest || elapsedTime < parseInt(currentBest, 10)) {
+    localStorage.setItem(key, elapsedTime.toString());
+    return true;
+  }
+  return false;
+}
+function getBestTime(withAssistance, configKey) {
+  const key = localstorageKey(withAssistance, configKey);
+  const best = localStorage.getItem(key);
+  return best ? parseInt(best, 10) : null;
+}
+
+// src/ui/screens/HallOfFameScreen.tsx
+function createHallOfFameScreen(onDismiss) {
+  const configs = ["4x4", "5x5", "6x6"];
+  const getRowData = (config) => {
+    const normalTime = getBestTime(false, config);
+    const assistedTime = getBestTime(true, config);
+    return {
+      normal: normalTime !== null ? formatTime(normalTime) : "\u2014",
+      assisted: assistedTime !== null ? formatTime(assistedTime) : "\u2014"
+    };
+  };
+  const container = /* @__PURE__ */ h("div", { className: "hof-screen-container", style: "pointer-events: auto;" }, /* @__PURE__ */ h("div", { className: "hof-screen-header" }, /* @__PURE__ */ h("h2", null, "\u2605 Hall of Fame \u2605"), /* @__PURE__ */ h("button", { className: "hof-close-btn", onclick: onDismiss }, /* @__PURE__ */ h("svg", { viewBox: "0 0 24 24", width: "24", height: "24", stroke: "currentColor", "stroke-width": "2.5", fill: "none", "stroke-linecap": "round", "stroke-linejoin": "round" }, /* @__PURE__ */ h("line", { x1: "18", y1: "6", x2: "6", y2: "18" }), /* @__PURE__ */ h("line", { x1: "6", y1: "6", x2: "18", y2: "18" })))), /* @__PURE__ */ h("div", { className: "hof-screen-content" }, /* @__PURE__ */ h("p", { className: "hof-intro" }, "Your personal best completion times for each game configuration."), /* @__PURE__ */ h("div", { className: "hof-grid-container" }, /* @__PURE__ */ h("table", { className: "hof-table" }, /* @__PURE__ */ h("thead", null, /* @__PURE__ */ h("tr", null, /* @__PURE__ */ h("th", null, "Size"), /* @__PURE__ */ h("th", null, "Standard Mode"), /* @__PURE__ */ h("th", null, "Assisted Mode"))), /* @__PURE__ */ h("tbody", null, configs.map((config) => {
+    const data = getRowData(config);
+    return /* @__PURE__ */ h("tr", { className: "hof-row" }, /* @__PURE__ */ h("td", { className: "hof-config-label" }, config), /* @__PURE__ */ h("td", { className: "hof-time-value standard" }, data.normal), /* @__PURE__ */ h("td", { className: "hof-time-value assisted" }, data.assisted));
+  }))))));
+  container.addEventListener("click", (e) => {
+    e.stopPropagation();
+  });
+  return {
+    element: container,
+    name: "hall-of-fame",
+    canDismissByOverlayClick: true
+  };
+}
+
+// src/ui/Timer.ts
+var Timer = class {
+  startTime = 0;
+  elapsedTime = 0;
+  timerInterval = null;
+  displayElement;
+  constructor(displayElement) {
+    this.displayElement = displayElement;
+  }
+  start() {
+    if (this.timerInterval !== null) return;
+    this.startTime = performance.now() - this.elapsedTime;
+    this.timerInterval = window.setInterval(() => {
+      this.elapsedTime = performance.now() - this.startTime;
+      this.updateDisplay();
+    }, 1e3);
+  }
+  pause() {
+    if (this.timerInterval !== null) {
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
+    }
+  }
+  stop() {
+    this.pause();
+  }
+  reset() {
+    this.stop();
+    this.elapsedTime = 0;
+    this.updateDisplay();
+  }
+  getElapsedTime() {
+    return this.elapsedTime;
+  }
+  updateDisplay() {
+    this.displayElement.textContent = formatTime(this.elapsedTime);
+  }
+};
 
 // src/app.ts
 var configurations = {
@@ -1696,8 +1723,8 @@ function startGame(configKey = "5x5", debugData) {
       finished = true;
       timer.stop();
       const timeMs = timer.getElapsedTime();
-      const bestTimeMs = timer.getBestTime(hasUsedAssistance, configKey);
-      const isBest = timer.saveBestTime(hasUsedAssistance, configKey);
+      const bestTimeMs = getBestTime(hasUsedAssistance, configKey);
+      const isBest = saveBestTime(timeMs, hasUsedAssistance, configKey);
       screenManager.push(createWinScreen({
         timeMs,
         isBest,
@@ -1725,6 +1752,9 @@ var landingScreen = createLandingScreen(
   },
   () => {
     screenManager.push(createHelpScreen(() => screenManager.pop()));
+  },
+  () => {
+    screenManager.push(createHallOfFameScreen(() => screenManager.pop()));
   }
 );
 screenManager.push(landingScreen);
