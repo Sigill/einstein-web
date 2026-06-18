@@ -1859,4 +1859,3 @@ function makeHintViews(hints2, hintViewVisibility2, hintsVContainer2, hintsHCont
   }
   return hintToElement2;
 }
-//# sourceMappingURL=app.js.map
