@@ -1,6 +1,6 @@
 import { h } from '../jsx';
 import { Screen } from './ScreenManager';
-import { Timer } from '../Timer';
+import { formatTime } from '../../misc/utils';
 
 interface WinScreenProps {
   timeMs: number;
@@ -15,7 +15,7 @@ export function createWinScreen(props: WinScreenProps): Screen {
     <div className="screen-container">
       <h1 style="color: #7bff7b;">{props.hasUsedAssistance ? 'Puzzle Solved!' : 'Victory!'}</h1>
       {props.hasUsedAssistance && <p style="font-size: 1.2rem; margin: 0; color: #ffeb3b; opacity: 0.8;">(with assistance)</p>}
-      <p style="font-size: 2rem; margin: 10px 0;">{Timer.formatTime(props.timeMs)}</p>
+      <p style="font-size: 2rem; margin: 10px 0;">{formatTime(props.timeMs)}</p>
       {props.isBest
         ? (
           <p style="color: #ffff7b; font-weight: bold; font-size: 1.5rem; animation: pulse 1s infinite;">
@@ -23,7 +23,7 @@ export function createWinScreen(props: WinScreenProps): Screen {
           </p>
         )
         : (
-          props.bestTimeMs && <p style="opacity: 0.6;">Best time: {Timer.formatTime(props.bestTimeMs)}</p>
+          props.bestTimeMs && <p style="opacity: 0.6;">Best time: {formatTime(props.bestTimeMs)}</p>
         )}
       <p style="margin-top: 30px;">Click anywhere to play again</p>
     </div>

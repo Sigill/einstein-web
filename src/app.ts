@@ -14,8 +14,10 @@ import { createPauseScreen } from './ui/screens/PauseScreen.js';
 import { createWinScreen } from './ui/screens/WinScreen.js';
 import { createLoseScreen } from './ui/screens/LoseScreen.js';
 import { createHelpScreen } from './ui/screens/HelpScreen.js';
+import { createHallOfFameScreen } from './ui/screens/HallOfFameScreen.js';
 import { Timer } from './ui/Timer.js';
 import { ActionMenu } from './ui/ActionMenu.js';
+import { saveBestTime, getBestTime } from './misc/BestTimes.js';
 
 interface Config {
   numTypes: number; numValues: number;
@@ -142,8 +144,8 @@ function startGame(configKey: keyof typeof configurations = '5x5', debugData?: P
       finished = true;
       timer.stop();
       const timeMs = timer.getElapsedTime();
-      const bestTimeMs = timer.getBestTime(hasUsedAssistance, configKey);
-      const isBest = timer.saveBestTime(hasUsedAssistance, configKey);
+      const bestTimeMs = getBestTime(hasUsedAssistance, configKey);
+      const isBest = saveBestTime(timeMs, hasUsedAssistance, configKey);
       screenManager.push(createWinScreen({
         timeMs,
         isBest,
@@ -176,6 +178,9 @@ const landingScreen = createLandingScreen(
   },
   () => {
     screenManager.push(createHelpScreen(() => screenManager.pop()));
+  },
+  () => {
+    screenManager.push(createHallOfFameScreen(() => screenManager.pop()));
   },
 );
 

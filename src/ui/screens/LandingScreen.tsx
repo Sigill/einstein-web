@@ -8,6 +8,7 @@ import { CardValue } from '../../engine/Card.js';
 export function createLandingScreen(
   onStart: (configKey: string) => void,
   onHelp: () => void,
+  onHallOfFame: () => void,
 ): Screen {
   const container = document.createElement('div');
   container.classList.add('landing-screen');
@@ -25,8 +26,8 @@ export function createLandingScreen(
     <div className="help-board-wrapper board-container"></div>
   </div> as HTMLElement;
 
-  let previewSize = 5;
-  let previewBoard = Board.create(previewSize, previewSize);
+  const previewSize = 5;
+  const previewBoard = Board.create(previewSize, previewSize);
   const previewBoardView = new BoardView(previewBoard);
   for (let type = 0; type < previewBoard.numTypes; type++) {
     for (let col = 0; col < previewBoard.numValues; col++) {
@@ -60,12 +61,13 @@ export function createLandingScreen(
   const controls = document.createElement('div');
   controls.classList.add('landing-controls');
 
-  const help = document.createElement('button');
-  help.type = 'button';
-  help.classList.add('secondary');
-  help.textContent = 'How to play';
+  const help = <button type="button" className="secondary">How to play</button> as HTMLElement;
   help.addEventListener('click', () => onHelp());
   controls.appendChild(help);
+
+  const hallOfFame = <button type="button" className="secondary">Hall of Fame</button> as HTMLElement;
+  hallOfFame.addEventListener('click', () => onHallOfFame());
+  controls.appendChild(hallOfFame);
 
   container.appendChild(controls);
 
@@ -73,8 +75,8 @@ export function createLandingScreen(
     element: container,
     name: 'landing',
     canDismissByOverlayClick: false,
-    onShow() {},
-    onHide() {},
+    onShow() { },
+    onHide() { },
   };
 
   return screen;

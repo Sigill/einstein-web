@@ -1,3 +1,5 @@
+import { formatTime } from '../misc/utils';
+
 export class Timer {
   private startTime: number = 0;
   private elapsedTime: number = 0;
@@ -38,39 +40,7 @@ export class Timer {
     return this.elapsedTime;
   }
 
-  public static formatTime(ms: number): string {
-    const totalSeconds = Math.floor(ms / 1000);
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-
-    return [hours, minutes, seconds]
-      .map(v => v.toString().padStart(2, '0'))
-      .join(':');
-  }
-
   private updateDisplay(): void {
-    this.displayElement.textContent = Timer.formatTime(this.elapsedTime);
+    this.displayElement.textContent = formatTime(this.elapsedTime);
   }
-
-  public saveBestTime(withAssistance: boolean, configKey: string = ''): boolean {
-    const key = localstorageKey(withAssistance, configKey);
-    const currentBest = localStorage.getItem(key);
-    if (!currentBest || this.elapsedTime < parseInt(currentBest, 10)) {
-      localStorage.setItem(key, this.elapsedTime.toString());
-      return true;
-    }
-    return false;
-  }
-
-  public getBestTime(withAssistance: boolean, configKey: string): number | null {
-    const key = localstorageKey(withAssistance, configKey);
-    const best = localStorage.getItem(key);
-    return best ? parseInt(best, 10) : null;
-  }
-}
-
-function localstorageKey(withAssistance: boolean, configKey: string) {
-  const base = withAssistance ? 'einstein-best-time-assisted' : 'einstein-best-time';
-  return configKey ? `${base}-${configKey}` : base;
 }
